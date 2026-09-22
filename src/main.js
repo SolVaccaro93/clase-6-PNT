@@ -4,4 +4,4 @@ import App from './App.vue'
 
 createApp(App).mount('#app')
 
-// hola soy un comentario
+// hola soy un comentario v2
