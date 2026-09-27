@@ -1,69 +1,142 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import UsuarioCard from "./components/UsuarioCard.vue";
+import { BibliotecaService } from "./services/bibliotecaService.js";
+import LibroCard from "./components/LibroCard.vue";
 
-const usuarios = ref([]);
-const isLoading = ref(false);
-const error = ref("");
 const busqueda = ref("");
+const generoSeleccionado = ref("Todos");
+const generos = ref(["Todos"]);
+const isLoading = ref(true);
+const error = ref("");
 
-async function cargarUsuarios() {
+// Carga inicial de los 25 libros desde la API
+async function cargarLibros() {
   isLoading.value = true;
   error.value = "";
 
   try {
-    const URL = "https://jsonplaceholder.typicode.com/users";
-    const respuesta = await fetch(URL);
-
-    if (!respuesta.ok) {
-      throw new Error(
-        "Error " + respuesta.status + ": " + respuesta.statusText + ". No se pudo cargar la lista de usuarios."
-      );
-    }
-
-    const respuestaJson = await respuesta.json();
-    usuarios.value = respuestaJson;
+    await BibliotecaService.cargarLibros(25);
+    generos.value = ["Todos", ...BibliotecaService.getGeneros()];
   } catch (e) {
-    error.value = e.message;
+    error.value = e.message || "Error al conectar con la API de OpenLibrary.";
   } finally {
     isLoading.value = false;
   }
 }
 
-const usuariosFiltrados = computed(() => {
-  return usuarios.value.filter((usuario) =>
-    usuario.name.toLowerCase().includes(busqueda.value.toLowerCase())
-  );
+// Filtrado de libros con el service acordado
+const librosFiltrados = computed(() => {
+  return BibliotecaService.buscar(busqueda.value, generoSeleccionado.value);
 });
 
 onMounted(() => {
-  cargarUsuarios();
+  cargarLibros();
 });
 </script>
 
 <template>
-  <div>
-    <h1>Usuarios</h1>
+  <div class="contenedor">
+    <h1>📚 Catálogo de Biblioteca</h1>
 
-    <div v-if="isLoading">Cargando...</div>
-
-    <div v-else-if="error">
-      <p>{{ error }}</p>
-      <button @click="cargarUsuarios">Reintentar</button>
+    <!-- Estado de carga -->
+    <div v-if="isLoading" class="estado">
+      <p>Cargando libros desde OpenLibrary...</p>
     </div>
 
+    <!-- Estado de error con reintento -->
+    <div v-else-if="error" class="estado error">
+      <p>{{ error }}</p>
+      <button @click="cargarLibros">Reintentar</button>
+    </div>
+
+    <!-- Contenido principal -->
     <div v-else>
-      <input v-model="busqueda" placeholder="Buscar usuario" />
+      <!-- Filtros de búsqueda (tarea de Patricio) -->
+      <div class="filtros">
+        <input
+          v-model="busqueda"
+          type="text"
+          placeholder="Buscar por título o autor..."
+        />
 
-      <p v-if="usuariosFiltrados.length === 0">No se encontraron usuarios.</p>
+        <select v-model="generoSeleccionado">
+          <option v-for="genero in generos" :key="genero" :value="genero">
+            {{ genero }}
+          </option>
+        </select>
+      </div>
 
-      <UsuarioCard
-        v-for="usuario in usuariosFiltrados"
-        :key="usuario.id"
-        :nombre="usuario.name"
-        :email="usuario.email"
-        :ciudad="usuario.address.city"
-      />
+      <!-- Grilla de libros (tarea de Matías) -->
+      <p v-if="librosFiltrados.length === 0">No se encontraron libros.</p>
+
+      <div v-else class="grilla">
+        <LibroCard
+          v-for="libro in librosFiltrados"
+          :key="libro.id"
+          :libro="libro"
+        />
+      </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.contenedor {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+h1 {
+  color: #ffffff;
+  margin-bottom: 20px;
+}
+
+.estado {
+  background-color: #242936;
+  padding: 24px;
+  border-radius: 8px;
+  border: 1px solid #3b4252;
+  text-align: center;
+}
+
+.estado button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #5e81ac;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.filtros {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+input, select {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #4c566a;
+  background-color: #242936;
+  color: #ffffff;
+  font-size: 0.95rem;
+}
+
+input {
+  flex: 1;
+}
+
+.grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+p {
+  color: #d8dee9;
+}
+</style>
