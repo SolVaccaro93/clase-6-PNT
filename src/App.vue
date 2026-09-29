@@ -35,16 +35,19 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="contenedor">
-    <h1>📚 Catálogo de Biblioteca</h1>
+  <main class="contenedor">
+    <header class="encabezado">
+      <h1>📚 Catálogo de Biblioteca</h1>
+      <p>Buscá libros y consultá su disponibilidad por sucursal.</p>
+    </header>
 
     <!-- Estado de carga -->
-    <div v-if="isLoading" class="estado">
+    <div v-if="isLoading" class="estado" role="status">
       <p>Cargando libros desde OpenLibrary...</p>
     </div>
 
     <!-- Estado de error con reintento -->
-    <div v-else-if="error" class="estado error">
+    <div v-else-if="error" class="estado error" role="alert">
       <p>{{ error }}</p>
       <button @click="cargarLibros">Reintentar</button>
     </div>
@@ -53,21 +56,27 @@ onMounted(() => {
     <div v-else>
       <!-- Filtros de búsqueda (tarea de Patricio) -->
       <div class="filtros">
-        <input
+        <label class="campo campo-busqueda">
+          <span>Buscar libro</span>
+          <input
           v-model="busqueda"
           type="text"
           placeholder="Buscar por título o autor..."
-        />
+          />
+        </label>
 
-        <select v-model="generoSeleccionado">
+        <label class="campo campo-genero">
+          <span>Género</span>
+          <select v-model="generoSeleccionado">
           <option v-for="genero in generos" :key="genero" :value="genero">
             {{ genero }}
           </option>
-        </select>
+          </select>
+        </label>
       </div>
 
       <!-- Grilla de libros (tarea de Matías) -->
-      <p v-if="librosFiltrados.length === 0">No se encontraron libros.</p>
+      <p v-if="librosFiltrados.length === 0" class="estado" role="status">No se encontraron libros.</p>
 
       <div v-else class="grilla">
         <LibroCard
@@ -77,7 +86,7 @@ onMounted(() => {
         />
       </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <style scoped>
@@ -87,9 +96,21 @@ onMounted(() => {
   padding: 24px 16px;
 }
 
+.encabezado {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #3b4252;
+}
+
 h1 {
   color: #ffffff;
-  margin-bottom: 20px;
+  margin: 0 0 8px;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  line-height: 1.2;
+}
+
+.encabezado p {
+  margin: 0;
 }
 
 .estado {
@@ -102,13 +123,6 @@ h1 {
 
 .estado button {
   margin-top: 10px;
-  padding: 8px 16px;
-  background-color: #5e81ac;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
 }
 
 .filtros {
@@ -117,26 +131,40 @@ h1 {
   margin-bottom: 24px;
 }
 
-input, select {
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #4c566a;
-  background-color: #242936;
-  color: #ffffff;
-  font-size: 0.95rem;
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  font-size: 0.9rem;
+  color: #d8dee9;
 }
 
-input {
+.campo-busqueda {
   flex: 1;
+}
+
+.campo-genero {
+  flex: 0 1 220px;
 }
 
 .grilla {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
   gap: 16px;
 }
 
 p {
   color: #d8dee9;
+}
+
+@media (max-width: 600px) {
+  .filtros {
+    flex-direction: column;
+  }
+
+  .campo-genero {
+    flex: auto;
+  }
 }
 </style>

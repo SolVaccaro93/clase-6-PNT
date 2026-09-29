@@ -69,7 +69,7 @@ onMounted(() => {
 <template>
   <div class="card">
     <span class="genero">{{ libro.genero }}</span>
-    <h3>{{ libro.titulo }}</h3>
+    <h2>{{ libro.titulo }}</h2>
     <p class="autor">Autor: {{ libro.autor }}</p>
 
     <!-- Disponibilidad por sucursal -->
@@ -87,7 +87,9 @@ onMounted(() => {
 
     <!-- Interacción de Solicitar -->
     <div class="acciones">
-      <select v-model="sucursalSeleccionada">
+      <label class="campo-sucursal">
+        <span>Sucursal</span>
+        <select v-model="sucursalSeleccionada">
         <option value="" disabled>Elegir sucursal...</option>
         <option
           v-for="item in disponibilidad"
@@ -96,19 +98,22 @@ onMounted(() => {
         >
           {{ item.sucursal.nombre }}
         </option>
-      </select>
+        </select>
+      </label>
 
       <button @click="solicitar">Solicitar</button>
     </div>
 
     <!-- Mensajes al usuario -->
-    <p v-if="mensajeExito" class="mensaje exito">{{ mensajeExito }}</p>
-    <p v-if="mensajeError" class="mensaje error">{{ mensajeError }}</p>
+    <p v-if="mensajeExito" class="mensaje exito" role="status">{{ mensajeExito }}</p>
+    <p v-if="mensajeError" class="mensaje error" role="alert">{{ mensajeError }}</p>
   </div>
 </template>
 
 <style scoped>
 .card {
+  min-width: 0;
+  overflow-wrap: anywhere;
   background-color: #242936;
   border: 1px solid #3b4252;
   border-radius: 8px;
@@ -128,7 +133,7 @@ onMounted(() => {
   align-self: flex-start;
 }
 
-h3 {
+h2 {
   margin: 0;
   font-size: 1.2rem;
   color: #ffffff;
@@ -141,6 +146,7 @@ h3 {
 }
 
 .disponibilidad {
+  margin-top: auto;
   background-color: #1e222d;
   padding: 10px;
   border-radius: 6px;
@@ -167,31 +173,28 @@ h3 {
 
 .acciones {
   display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
   gap: 8px;
   margin-top: 8px;
 }
 
+.campo-sucursal {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 130px;
+  min-width: 0;
+  font-size: 0.85rem;
+}
+
 select {
-  flex: 1;
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #4c566a;
+  width: 100%;
   background-color: #2e3440;
-  color: #eceff4;
 }
 
-button {
-  padding: 8px 14px;
-  background-color: #5e81ac;
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-button:hover {
-  background-color: #81a1c1;
+.acciones button {
+  flex: 1 1 auto;
 }
 
 .mensaje {
