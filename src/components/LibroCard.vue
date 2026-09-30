@@ -4,7 +4,8 @@ import { BibliotecaService } from "../services/bibliotecaService.js";
 
 // Props: solo recibimos el objeto libro
 const props = defineProps({
-  libro: Object
+  libro: Object,
+  mostrarDetalle: { type: Boolean, default: true }
 });
 
 // Variables reactivas simples
@@ -71,6 +72,9 @@ onMounted(() => {
     <span class="genero">{{ libro.genero }}</span>
     <h2>{{ libro.titulo }}</h2>
     <p class="autor">Autor: {{ libro.autor }}</p>
+    <RouterLink v-if="mostrarDetalle" :to="{ name: 'detalle', params: { id: libro.id } }">
+      Ver detalle<span class="sr-only"> de {{ libro.titulo }}</span> →
+    </RouterLink>
 
     <!-- Disponibilidad por sucursal -->
     <div class="disponibilidad">

@@ -1,92 +1,17 @@
-<script setup>
-import { ref, computed, onMounted } from "vue";
-import { BibliotecaService } from "./services/bibliotecaService.js";
-import LibroCard from "./components/LibroCard.vue";
-
-const busqueda = ref("");
-const generoSeleccionado = ref("Todos");
-const generos = ref(["Todos"]);
-const isLoading = ref(true);
-const error = ref("");
-
-// Carga inicial de los 25 libros desde la API
-async function cargarLibros() {
-  isLoading.value = true;
-  error.value = "";
-
-  try {
-    await BibliotecaService.cargarLibros(25);
-    generos.value = ["Todos", ...BibliotecaService.getGeneros()];
-  } catch (e) {
-    error.value = e.message || "Error al conectar con la API de OpenLibrary.";
-  } finally {
-    isLoading.value = false;
-  }
-}
-
-// Filtrado de libros con el service acordado
-const librosFiltrados = computed(() => {
-  return BibliotecaService.buscar(busqueda.value, generoSeleccionado.value);
-});
-
-onMounted(() => {
-  cargarLibros();
-});
-</script>
-
 <template>
-  <main class="contenedor">
+  <div class="contenedor">
     <header class="encabezado">
       <h1>📚 Catálogo de Biblioteca</h1>
       <p>Buscá libros y consultá su disponibilidad por sucursal.</p>
+      <nav aria-label="Navegación principal">
+        <RouterLink :to="{ name: 'inicio' }">Inicio</RouterLink>
+        <RouterLink :to="{ name: 'listado' }">Listado</RouterLink>
+      </nav>
     </header>
-
-    <!-- Estado de carga -->
-    <div v-if="isLoading" class="estado" role="status">
-      <p>Cargando libros desde OpenLibrary...</p>
-    </div>
-
-    <!-- Estado de error con reintento -->
-    <div v-else-if="error" class="estado error" role="alert">
-      <p>{{ error }}</p>
-      <button @click="cargarLibros">Reintentar</button>
-    </div>
-
-    <!-- Contenido principal -->
-    <div v-else>
-      <!-- Filtros de búsqueda (tarea de Patricio) -->
-      <div class="filtros">
-        <label class="campo campo-busqueda">
-          <span>Buscar libro</span>
-          <input
-          v-model="busqueda"
-          type="text"
-          placeholder="Buscar por título o autor..."
-          />
-        </label>
-
-        <label class="campo campo-genero">
-          <span>Género</span>
-          <select v-model="generoSeleccionado">
-          <option v-for="genero in generos" :key="genero" :value="genero">
-            {{ genero }}
-          </option>
-          </select>
-        </label>
-      </div>
-
-      <!-- Grilla de libros (tarea de Matías) -->
-      <p v-if="librosFiltrados.length === 0" class="estado" role="status">No se encontraron libros.</p>
-
-      <div v-else class="grilla">
-        <LibroCard
-          v-for="libro in librosFiltrados"
-          :key="libro.id"
-          :libro="libro"
-        />
-      </div>
-    </div>
-  </main>
+    <main>
+      <RouterView />
+    </main>
+  </div>
 </template>
 
 <style scoped>
@@ -95,76 +20,35 @@ onMounted(() => {
   margin: 0 auto;
   padding: 24px 16px;
 }
-
 .encabezado {
   margin-bottom: 24px;
   padding-bottom: 20px;
   border-bottom: 1px solid #3b4252;
 }
-
 h1 {
   color: #ffffff;
   margin: 0 0 8px;
   font-size: clamp(1.5rem, 4vw, 2rem);
   line-height: 1.2;
 }
-
 .encabezado p {
   margin: 0;
 }
-
-.estado {
-  background-color: #242936;
-  padding: 24px;
-  border-radius: 8px;
-  border: 1px solid #3b4252;
-  text-align: center;
-}
-
-.estado button {
-  margin-top: 10px;
-}
-
-.filtros {
+nav {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 24px;
+  margin-top: 20px;
 }
-
-.campo {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-  font-size: 0.9rem;
-  color: #d8dee9;
+nav a {
+  padding: 8px 16px;
+  border: 1px solid #4c566a;
+  border-radius: 6px;
+  text-decoration: none;
 }
-
-.campo-busqueda {
-  flex: 1;
-}
-
-.campo-genero {
-  flex: 0 1 220px;
-}
-
-.grilla {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
-  gap: 16px;
-}
-
-p {
-  color: #d8dee9;
-}
-
-@media (max-width: 600px) {
-  .filtros {
-    flex-direction: column;
-  }
-
-  .campo-genero {
-    flex: auto;
-  }
+nav a.router-link-exact-active {
+  background-color: #3b4252;
+  color: #ffffff;
+  border-color: #88c0d0;
 }
 </style>

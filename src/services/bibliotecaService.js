@@ -10,6 +10,8 @@ export const SUCURSALES = [
 
 // Lista de libros que se llenará con el fetch a OpenLibrary
 let libros = [];
+let catalogoCargado = false;
+let cargaPendiente = null;
 
 // Mapa de stock: Map<libroId, Map<sucursalId, cantidad>>
 const stockMap = new Map();
@@ -43,6 +45,18 @@ export const BibliotecaService = {
    * @param {number} limite Cantidad de libros a traer (por defecto 25)
    */
   async cargarLibros(limite = 25) {
+    if (catalogoCargado) return libros;
+    if (cargaPendiente) return cargaPendiente;
+
+    cargaPendiente = this.cargarDesdeApi(limite);
+    try {
+      return await cargaPendiente;
+    } finally {
+      cargaPendiente = null;
+    }
+  },
+
+  async cargarDesdeApi(limite) {
     const URL = `https://openlibrary.org/search.json?q=novela&limit=${limite}`;
     const respuesta = await fetch(URL);
 
@@ -77,8 +91,15 @@ export const BibliotecaService = {
 
     // Creamos el mapa de stock para estos 25 libros
     inicializarStockParaLibros(libros);
+    catalogoCargado = true;
 
     return libros;
+  },
+
+  getLibroPorId(id) {
+    // Los IDs del catálogo son enteros positivos, del 1 al 25.
+    if (!/^[1-9]\d*$/.test(String(id))) return null;
+    return libros.find((libro) => libro.id === Number(id)) || null;
   },
 
   /**
