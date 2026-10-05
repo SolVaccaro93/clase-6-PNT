@@ -73,7 +73,7 @@ onMounted(() => {
         </label>
       </div>
 
-      <!-- Grilla de libros (tarea de Matías) -->
+      <!-- Grilla de libros -->
       <p v-if="librosFiltrados.length === 0" class="estado" role="status">No se encontraron libros.</p>
 
       <div v-else class="grilla">

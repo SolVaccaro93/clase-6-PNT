@@ -23,10 +23,6 @@ function inicializarStockParaLibros(listaLibros) {
   listaLibros.forEach((libro, index) => {
     const stockPorSucursal = new Map();
 
-    // Generamos stock variado para probar todos los casos:
-    // - En algunos libros Floresta tendrá 0 para probar el mensaje amigable
-    // - En otros habrá stock en todas
-    // - En otros estará agotado
     const stockCentro = index % 3 === 0 ? 0 : (index % 4) + 1;
     const stockFloresta = index % 2 === 0 ? 0 : ((index + 1) % 3) + 1;
     const stockBelgrano = index % 5 === 0 ? 0 : 2;
@@ -70,7 +66,6 @@ export const BibliotecaService = {
     const generosEjemplo = ["Novela", "Ficción", "Clásico", "Drama", "Aventura"];
 
     libros = docs.slice(0, limite).map((doc, index) => {
-      // Determinamos un género limpio (si la API lo trae lo usamos, si no asignamos uno)
       let genero = "Novela";
       if (doc.subject && doc.subject.length > 0 && typeof doc.subject[0] === "string") {
         genero = doc.subject[0].split(",")[0].trim();
@@ -89,7 +84,6 @@ export const BibliotecaService = {
       };
     });
 
-    // Creamos el mapa de stock para estos 25 libros
     inicializarStockParaLibros(libros);
     catalogoCargado = true;
 
@@ -97,7 +91,6 @@ export const BibliotecaService = {
   },
 
   getLibroPorId(id) {
-    // Los IDs del catálogo son enteros positivos, del 1 al 25.
     if (!/^[1-9]\d*$/.test(String(id))) return null;
     return libros.find((libro) => libro.id === Number(id)) || null;
   },
@@ -169,5 +162,30 @@ export const BibliotecaService = {
       ok: true,
       mensaje: "Solicitud realizada con éxito."
     };
+  },
+
+  // ==========================================
+  // Requerimiento: Gestión de stock para Panel Admin - Matías
+  // ==========================================
+  obtenerTodoElStock() {
+    return libros.map((libro) => {
+      const mapa = stockMap.get(libro.id) || new Map();
+      return {
+        libro: libro,
+        stockPorSucursal: SUCURSALES.map((s) => ({
+          sucursal: s,
+          cantidad: mapa.get(s.id) || 0
+        }))
+      };
+    });
+  },
+
+  actualizarStock(libroId, sucursalId, cambio) {
+    const stockLibro = stockMap.get(Number(libroId));
+    if (!stockLibro) return;
+    const actual = stockLibro.get(Number(sucursalId)) || 0;
+    const nuevo = Math.max(0, actual + cambio);
+    stockLibro.set(Number(sucursalId), nuevo);
+    return nuevo;
   }
 };

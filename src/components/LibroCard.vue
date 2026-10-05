@@ -1,14 +1,18 @@
 <script setup>
 import { ref, onMounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import { BibliotecaService } from "../services/bibliotecaService.js";
+import { AuthService } from "../services/authService.js";
 
-// Props: solo recibimos el objeto libro
 const props = defineProps({
   libro: Object,
   mostrarDetalle: { type: Boolean, default: true }
 });
 
-// Variables reactivas simples
+const router = useRouter();
+const route = useRoute();
+
+// Variables reactivas
 const disponibilidad = ref([]);
 const sucursalSeleccionada = ref("");
 const mensajeExito = ref("");
@@ -23,38 +27,42 @@ function cargarDisponibilidad() {
   }
 }
 
-// Lógica de solicitud y traducción a mensaje amigable
+// =========================================================================
+// Requerimiento: Redirección al login con retorno exacto - Matías
+// =========================================================================
 function solicitar() {
-  // Limpiamos mensajes anteriores
   mensajeExito.value = "";
   mensajeError.value = "";
+
+  // Si el usuario no ha iniciado sesión, lo redirigimos al Login
+  // pasándole como parámetro 'redirect' la ruta exacta donde está ahora
+  if (!AuthService.estaAutenticado()) {
+    router.push({
+      name: "login",
+      query: { redirect: route.fullPath }
+    });
+    return;
+  }
 
   if (!sucursalSeleccionada.value) {
     mensajeError.value = "Por favor, seleccioná una sucursal.";
     return;
   }
 
-  // Buscamos el nombre de la sucursal elegida para armar el mensaje
   const sucursalElegida = disponibilidad.value.find(
     (d) => d.sucursal.id === Number(sucursalSeleccionada.value)
   );
 
   try {
-    // Llamamos al service de Marisol
     BibliotecaService.solicitar(props.libro.id, Number(sucursalSeleccionada.value));
-
-    // Si no tiró error, fue exitoso: refrescamos el stock y avisamos
     cargarDisponibilidad();
     mensajeExito.value = `¡Listo! Tenés reservado tu ejemplar en ${sucursalElegida.sucursal.nombre}.`;
   } catch (error) {
-    // Si tiró error, traducimos a un mensaje amigable:
-    // Revisamos si en alguna OTRA sucursal sí hay stock
     const otraConStock = disponibilidad.value.find(
       (d) => d.sucursal.id !== Number(sucursalSeleccionada.value) && d.cantidad > 0
     );
 
     if (otraConStock) {
-      // Mensaje del alcance: "No lo tenemos en Floresta, pero hay 2 en Centro"
       mensajeError.value = `No lo tenemos en ${sucursalElegida.sucursal.nombre}, pero hay ${otraConStock.cantidad} en ${otraConStock.sucursal.nombre}.`;
     } else {
       mensajeError.value = `No hay stock disponible en ninguna sucursal por el momento.`;
@@ -89,19 +97,19 @@ onMounted(() => {
       </ul>
     </div>
 
-    <!-- Interacción de Solicitar -->
+    <!-- Interacción de Solicitar (con protección de login on-demand) -->
     <div class="acciones">
       <label class="campo-sucursal">
         <span>Sucursal</span>
         <select v-model="sucursalSeleccionada">
-        <option value="" disabled>Elegir sucursal...</option>
-        <option
-          v-for="item in disponibilidad"
-          :key="item.sucursal.id"
-          :value="item.sucursal.id"
-        >
-          {{ item.sucursal.nombre }}
-        </option>
+          <option value="" disabled>Elegir sucursal...</option>
+          <option
+            v-for="item in disponibilidad"
+            :key="item.sucursal.id"
+            :value="item.sucursal.id"
+          >
+            {{ item.sucursal.nombre }}
+          </option>
         </select>
       </label>
 
