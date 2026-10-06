@@ -8,6 +8,7 @@ import AdminView from "../views/AdminView.vue";
 import NoEncontradoView from "../views/NoEncontradoView.vue";
 import SucursalesView from "../views/SucursalesView.vue";
 import AmigosView from "../views/AmigosView.vue";
+import PrestamosView from "../views/PrestamosView.vue";
 
 const router = createRouter({
   // El hash permite recargar cualquier pantalla sin configurar el servidor.
@@ -21,6 +22,7 @@ const router = createRouter({
     // Requerimiento: Mapa de sucursales y vista 'Mis amigos' - Sol
     { path: "/sucursales", name: "sucursales", component: SucursalesView },
     { path: "/amigos", name: "amigos", component: AmigosView },
+    { path: "/prestamos", name: "prestamos", component: PrestamosView, meta: { requiresAuth: true } },
 
     // Requerimiento: Login y sesión por usuario - Matías
     { path: "/login", name: "login", component: LoginView },
@@ -49,6 +51,10 @@ const router = createRouter({
 // - from: ruta desde donde viene
 // - next: función que autoriza o desvía la navegación
 router.beforeEach((to, from, next) => {
+  if (to.meta.requiresAuth && !AuthService.estaAutenticado()) {
+    next({ name: "login", query: { redirect: to.fullPath } });
+    return;
+  }
   // Verificamos si la ruta exige rol de administrador
   if (to.meta.requiresAdmin) {
     if (!AuthService.esAdmin()) {

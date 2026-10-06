@@ -1,7 +1,7 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { BibliotecaService } from "../services/bibliotecaService.js";
+import { BibliotecaService, cambiosStock } from "../services/bibliotecaService.js";
 import { AuthService } from "../services/authService.js";
 import VotoLibro from "./VotoLibro.vue";
 
@@ -18,6 +18,8 @@ const disponibilidad = ref([]);
 const sucursalSeleccionada = ref("");
 const mensajeExito = ref("");
 const mensajeError = ref("");
+const prestamoActivo = computed(() => BibliotecaService.obtenerPrestamoActivo());
+const prestamoDelLibro = computed(() => prestamoActivo.value?.clave_libro === props.libro.clave ? prestamoActivo.value : null);
 
 // Consulta la disponibilidad al service
 function cargarDisponibilidad() {
@@ -50,30 +52,26 @@ function solicitar() {
     return;
   }
 
-  const sucursalElegida = disponibilidad.value.find(
-    (d) => d.sucursal.id === Number(sucursalSeleccionada.value)
-  );
-
   try {
-    BibliotecaService.solicitar(props.libro.id, Number(sucursalSeleccionada.value));
-    cargarDisponibilidad();
-    mensajeExito.value = `¡Listo! Tenés reservado tu ejemplar en ${sucursalElegida.sucursal.nombre}.`;
+    const prestamo = BibliotecaService.retirar(props.libro.id, Number(sucursalSeleccionada.value));
+    mensajeExito.value = `Retiraste tu ejemplar en ${prestamo.sucursal}. Estado: leyendo.`;
   } catch (error) {
-    const otraConStock = disponibilidad.value.find(
-      (d) => d.sucursal.id !== Number(sucursalSeleccionada.value) && d.cantidad > 0
-    );
-
-    if (otraConStock) {
-      mensajeError.value = `No lo tenemos en ${sucursalElegida.sucursal.nombre}, pero hay ${otraConStock.cantidad} en ${otraConStock.sucursal.nombre}.`;
-    } else {
-      mensajeError.value = `No hay stock disponible en ninguna sucursal por el momento.`;
-    }
+    mensajeError.value = error.message;
   }
 }
 
-onMounted(() => {
-  cargarDisponibilidad();
-});
+function devolver() {
+  mensajeExito.value = "";
+  mensajeError.value = "";
+  try {
+    BibliotecaService.devolver(prestamoDelLibro.value.id_prestamo);
+    mensajeExito.value = "Libro devuelto. Estado: terminado. El ejemplar vuelve a estar disponible.";
+  } catch (error) {
+    mensajeError.value = error.message;
+  }
+}
+
+watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: true });
 </script>
 
 <template>
@@ -100,7 +98,15 @@ onMounted(() => {
     </div>
 
     <!-- Interacción de Solicitar (con protección de login on-demand) -->
-    <div class="acciones">
+    <div v-if="prestamoDelLibro" class="acciones">
+      <p>Estado: <strong>leyendo</strong> ? Retirado en {{ prestamoDelLibro.sucursal }}</p>
+      <button @click="devolver">Devolver y terminar</button>
+    </div>
+    <p v-else-if="prestamoActivo" role="status">
+      Ya ten?s un libro activo: {{ prestamoActivo.titulo }}.
+      <RouterLink :to="{ name: 'prestamos' }">Devolver desde Mis pr?stamos</RouterLink>
+    </p>
+    <div v-else class="acciones">
       <label class="campo-sucursal">
         <span>Sucursal</span>
         <select v-model="sucursalSeleccionada">
@@ -109,13 +115,14 @@ onMounted(() => {
             v-for="item in disponibilidad"
             :key="item.sucursal.id"
             :value="item.sucursal.id"
+            :disabled="item.cantidad === 0"
           >
             {{ item.sucursal.nombre }}
           </option>
         </select>
       </label>
 
-      <button @click="solicitar">Solicitar</button>
+      <button @click="solicitar">Retirar libro</button>
     </div>
 
     <!-- Mensajes al usuario -->

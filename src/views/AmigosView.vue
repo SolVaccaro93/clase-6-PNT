@@ -2,7 +2,8 @@
 // =========================================================================
 // Requerimiento: Vista 'Mis amigos' con lecturas - Sol
 // =========================================================================
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, watch } from "vue";
+import { cambiosPrestamos } from "../services/bibliotecaService.js";
 import { AuthService } from "../services/authService.js";
 import { AmigosService } from "../services/amigosService.js";
 
@@ -23,6 +24,8 @@ const usuario = computed(() => AuthService.usuario);
 
 async function cargarAmigos() {
   if (!usuario.value) {
+    amigos.value = [];
+    solicitudes.value = [];
     isLoading.value = false;
     return;
   }
@@ -59,7 +62,7 @@ function inicial(nombre) {
   return nombre.charAt(0).toUpperCase();
 }
 
-onMounted(cargarAmigos);
+watch([() => usuario.value?.usuario, cambiosPrestamos], cargarAmigos, { immediate: true });
 </script>
 
 <template>

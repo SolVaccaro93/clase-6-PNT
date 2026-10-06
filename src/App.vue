@@ -52,6 +52,7 @@ function cerrarSesion() {
         <RouterLink :to="{ name: 'listado' }">Listado</RouterLink>
         <RouterLink :to="{ name: 'sucursales' }">Sucursales</RouterLink>
         <RouterLink :to="{ name: 'amigos' }">Mis amigos</RouterLink>
+        <RouterLink v-if="usuario" :to="{ name: 'prestamos' }">Mis préstamos</RouterLink>
 
         <!-- Requerimiento: Panel y permisos diferenciados para administrador - Matías -->
         <RouterLink v-if="esAdmin" :to="{ name: 'admin' }" class="link-admin">

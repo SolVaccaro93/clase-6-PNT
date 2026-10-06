@@ -1,6 +1,6 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
-import { BibliotecaService, SUCURSALES } from "../services/bibliotecaService.js";
+import { ref, computed, onMounted, watch } from "vue";
+import { BibliotecaService, SUCURSALES, cambiosStock } from "../services/bibliotecaService.js";
 import { AuthService } from "../services/authService.js";
 
 // Verificamos si el usuario actual es administrador
@@ -47,6 +47,9 @@ const totalEjemplares = computed(() => {
 
 onMounted(() => {
   cargarDatosAdmin();
+});
+watch(cambiosStock, () => {
+  librosStock.value = BibliotecaService.obtenerTodoElStock();
 });
 </script>
 

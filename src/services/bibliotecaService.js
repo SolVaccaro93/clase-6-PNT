@@ -3,6 +3,32 @@
 // ==========================================
 
 import { ref } from "vue";
+import { AuthService } from "./authService.js";
+
+const CLAVE_PRESTAMOS = "biblioteca_prestamos_stock";
+function leerDatos() {
+  const datos = JSON.parse(localStorage.getItem(CLAVE_PRESTAMOS) || "null");
+  return datos || { prestamos: [], stock: {} };
+}
+let datos = leerDatos();
+export const cambiosPrestamos = ref(0);
+
+function guardar(prestamos, stock) {
+  // Guardar primero: si falla la persistencia no se modifica el stock en memoria.
+  const siguientes = { prestamos, stock };
+  localStorage.setItem(CLAVE_PRESTAMOS, JSON.stringify(siguientes));
+  datos = siguientes;
+}
+
+function usuarioActual() {
+  if (!AuthService.usuario) throw new Error("Iniciá sesión para gestionar tus préstamos.");
+  return AuthService.usuario.usuario;
+}
+
+function fechaActual() {
+  const fecha = new Date();
+  return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}-${String(fecha.getDate()).padStart(2, "0")}`;
+}
 
 export const SUCURSALES = [
   { id: 1, nombre: "Centro" },
@@ -35,6 +61,11 @@ function inicializarStockParaLibros(listaLibros) {
     stockPorSucursal.set(1, stockCentro);    // Centro
     stockPorSucursal.set(2, stockFloresta);  // Floresta
     stockPorSucursal.set(3, stockBelgrano);  // Belgrano
+
+    SUCURSALES.forEach(({ id }) => {
+      const guardado = datos.stock[libro.clave]?.[id];
+      if (Number.isInteger(guardado) && guardado >= 0) stockPorSucursal.set(id, guardado);
+    });
 
     stockMap.set(libro.id, stockPorSucursal);
   });
@@ -152,24 +183,72 @@ export const BibliotecaService = {
    * Solicita un libro en una sucursal específica.
    */
   solicitar(libroId, sucursalId) {
+    return this.retirar(libroId, sucursalId);
+  },
+
+  obtenerPrestamos(idUsuario = AuthService.usuario?.usuario) {
+    cambiosPrestamos.value;
+    return datos.prestamos.filter((p) => p.id_usuario === idUsuario).map((p) => ({ ...p }));
+  },
+
+  obtenerPrestamoActivo() {
+    return this.obtenerPrestamos().find((p) => p.fecha_devolucion === null) || null;
+  },
+
+  retirar(libroId, sucursalId) {
+    const idUsuario = usuarioActual();
+    if (this.obtenerPrestamoActivo()) {
+      throw new Error("Ya tenés un libro activo. Devolvelo antes de retirar otro.");
+    }
     const idLibroNum = Number(libroId);
     const idSucursalNum = Number(sucursalId);
+    const libro = this.getLibroPorId(idLibroNum);
+    const sucursal = SUCURSALES.find((s) => s.id === idSucursalNum);
+    if (!libro || !sucursal) throw new Error("El libro o la sucursal no existen.");
 
     const stockLibro = stockMap.get(idLibroNum);
     const stockActual = stockLibro ? stockLibro.get(idSucursalNum) || 0 : 0;
 
     if (stockActual <= 0) {
-      throw new Error("SIN_STOCK");
+      throw new Error("No hay stock disponible en la sucursal seleccionada.");
     }
 
-    // Descuenta stock en el Map
+    const prestamo = {
+      id_prestamo: crypto.randomUUID(), id_usuario: idUsuario,
+      clave_libro: libro.clave, titulo: libro.titulo, autor: libro.autor,
+      id_sucursal: sucursal.id, sucursal: sucursal.nombre,
+      fecha_retiro: fechaActual(), fecha_devolucion: null, estado_lectura: "leyendo"
+    };
+    guardar([...datos.prestamos, prestamo], {
+      ...datos.stock,
+      [libro.clave]: { ...datos.stock[libro.clave], [idSucursalNum]: stockActual - 1 }
+    });
     stockLibro.set(idSucursalNum, stockActual - 1);
     cambiosStock.value++;
+    cambiosPrestamos.value++;
 
-    return {
-      ok: true,
-      mensaje: "Solicitud realizada con éxito."
-    };
+    return { ...prestamo };
+  },
+
+  devolver(idPrestamo) {
+    const idUsuario = usuarioActual();
+    const prestamo = datos.prestamos.find((p) => p.id_prestamo === idPrestamo && p.id_usuario === idUsuario);
+    if (!prestamo) throw new Error("No se encontró un préstamo tuyo con ese identificador.");
+    if (prestamo.fecha_devolucion !== null) throw new Error("Este libro ya fue devuelto.");
+    const libro = libros.find((l) => l.clave === prestamo.clave_libro);
+    const stockLibro = libro ? stockMap.get(libro.id) : null;
+    const actual = stockLibro?.get(prestamo.id_sucursal) ?? datos.stock[prestamo.clave_libro]?.[prestamo.id_sucursal];
+    if (!Number.isInteger(actual)) throw new Error("No se pudo consultar el stock del préstamo.");
+    const terminado = { ...prestamo, fecha_devolucion: fechaActual(), estado_lectura: "terminado" };
+    guardar(datos.prestamos.map((p) => p.id_prestamo === idPrestamo ? terminado : p), {
+      ...datos.stock,
+      [prestamo.clave_libro]: { ...datos.stock[prestamo.clave_libro], [prestamo.id_sucursal]: actual + 1 }
+    });
+    stockLibro?.set(prestamo.id_sucursal, actual + 1);
+    cambiosStock.value++;
+    cambiosPrestamos.value++;
+
+    return { ...terminado };
   },
 
   /**
@@ -205,7 +284,16 @@ export const BibliotecaService = {
     if (!stockLibro) return;
     const actual = stockLibro.get(Number(sucursalId)) || 0;
     const nuevo = Math.max(0, actual + cambio);
+    const libro = this.getLibroPorId(libroId);
+    if (!SUCURSALES.some((s) => s.id === Number(sucursalId)) || !Number.isInteger(nuevo)) {
+      throw new Error("El stock debe ser entero y la sucursal debe existir.");
+    }
+    guardar(datos.prestamos, {
+      ...datos.stock,
+      [libro.clave]: { ...datos.stock[libro.clave], [Number(sucursalId)]: nuevo }
+    });
     stockLibro.set(Number(sucursalId), nuevo);
+    cambiosStock.value++;
     return nuevo;
   }
 };

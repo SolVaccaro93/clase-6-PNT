@@ -5,6 +5,8 @@
 // estén los endpoints de Valentín. Los métodos son async para que el cambio a
 // fetch no obligue a modificar las vistas.
 
+import { BibliotecaService } from "./bibliotecaService.js";
+
 const USUARIOS = [
   { id_usuario: "lector", nombre: "Sol Vaccaro" },
   { id_usuario: "admin", nombre: "Matías Gratz" },
@@ -45,7 +47,7 @@ export const AmigosService = {
       .map((a) => (a.id_usuario_solicita === idUsuario ? a.id_usuario_amigo : a.id_usuario_solicita));
 
     return idsAmigos.map((id) => {
-      const lecturas = LECTURAS.filter((l) => l.id_usuario === id);
+      const lecturas = [...LECTURAS.filter((l) => l.id_usuario === id), ...BibliotecaService.obtenerPrestamos(id)];
       return {
         id_usuario: id,
         nombre: nombreDe(id),
