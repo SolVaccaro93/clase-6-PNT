@@ -3,6 +3,7 @@ import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { BibliotecaService } from "../services/bibliotecaService.js";
 import { AuthService } from "../services/authService.js";
+import VotoLibro from "./VotoLibro.vue";
 
 const props = defineProps({
   libro: Object,
@@ -80,6 +81,7 @@ onMounted(() => {
     <span class="genero">{{ libro.genero }}</span>
     <h2>{{ libro.titulo }}</h2>
     <p class="autor">Autor: {{ libro.autor }}</p>
+    <VotoLibro :libro="libro" />
     <RouterLink v-if="mostrarDetalle" :to="{ name: 'detalle', params: { id: libro.id } }">
       Ver detalle<span class="sr-only"> de {{ libro.titulo }}</span> →
     </RouterLink>

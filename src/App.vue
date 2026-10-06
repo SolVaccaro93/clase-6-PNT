@@ -50,6 +50,8 @@ function cerrarSesion() {
       <nav aria-label="Navegación principal">
         <RouterLink :to="{ name: 'inicio' }">Inicio</RouterLink>
         <RouterLink :to="{ name: 'listado' }">Listado</RouterLink>
+        <RouterLink :to="{ name: 'sucursales' }">Sucursales</RouterLink>
+        <RouterLink :to="{ name: 'amigos' }">Mis amigos</RouterLink>
 
         <!-- Requerimiento: Panel y permisos diferenciados para administrador - Matías -->
         <RouterLink v-if="esAdmin" :to="{ name: 'admin' }" class="link-admin">

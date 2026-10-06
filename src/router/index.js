@@ -6,6 +6,8 @@ import DetalleView from "../views/DetalleView.vue";
 import LoginView from "../views/LoginView.vue";
 import AdminView from "../views/AdminView.vue";
 import NoEncontradoView from "../views/NoEncontradoView.vue";
+import SucursalesView from "../views/SucursalesView.vue";
+import AmigosView from "../views/AmigosView.vue";
 
 const router = createRouter({
   // El hash permite recargar cualquier pantalla sin configurar el servidor.
@@ -15,6 +17,10 @@ const router = createRouter({
     { path: "/", name: "inicio", component: InicioView },
     { path: "/libros", name: "listado", component: ListadoView },
     { path: "/libros/:id", name: "detalle", component: DetalleView, props: true },
+
+    // Requerimiento: Mapa de sucursales y vista 'Mis amigos' - Sol
+    { path: "/sucursales", name: "sucursales", component: SucursalesView },
+    { path: "/amigos", name: "amigos", component: AmigosView },
 
     // Requerimiento: Login y sesión por usuario - Matías
     { path: "/login", name: "login", component: LoginView },

@@ -2,6 +2,7 @@
 import { ref, watch } from "vue";
 import { BibliotecaService } from "../services/bibliotecaService.js";
 import LibroCard from "../components/LibroCard.vue";
+import MapaSucursales from "../components/MapaSucursales.vue";
 
 const props = defineProps({ id: { type: String, required: true } });
 const libro = ref(null);
@@ -43,6 +44,9 @@ watch(() => props.id, cargarDetalle, { immediate: true });
     </div>
     <div v-else class="detalle">
       <LibroCard :key="libro.id" :libro="libro" :mostrar-detalle="false" />
+
+      <h3 class="titulo-mapa">¿Dónde está disponible?</h3>
+      <MapaSucursales :key="`mapa-${libro.id}`" :libro="libro" />
     </div>
   </section>
 </template>
@@ -51,5 +55,11 @@ watch(() => props.id, cargarDetalle, { immediate: true });
 .detalle {
   max-width: 560px;
   margin: 0 auto;
+}
+
+.titulo-mapa {
+  margin: 24px 0 10px;
+  color: #ffffff;
+  font-size: 1.1rem;
 }
 </style>

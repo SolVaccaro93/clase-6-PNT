@@ -2,11 +2,16 @@
 // PARTE DE MARISOL: BibliotecaService
 // ==========================================
 
+import { ref } from "vue";
+
 export const SUCURSALES = [
   { id: 1, nombre: "Centro" },
   { id: 2, nombre: "Floresta" },
   { id: 3, nombre: "Belgrano" }
 ];
+
+// Contador reactivo: aumenta cada vez que cambia el stock, para que el mapa se actualice.
+export const cambiosStock = ref(0);
 
 // Lista de libros que se llenará con el fetch a OpenLibrary
 let libros = [];
@@ -78,6 +83,8 @@ export const BibliotecaService = {
 
       return {
         id: index + 1,
+        // Clave estable de OpenLibrary (ej: "/works/OL123W"), no depende del orden de la API
+        clave: doc.key,
         titulo: doc.title,
         autor: doc.author_name ? doc.author_name[0] : "Autor desconocido",
         genero: genero
@@ -157,11 +164,24 @@ export const BibliotecaService = {
 
     // Descuenta stock en el Map
     stockLibro.set(idSucursalNum, stockActual - 1);
+    cambiosStock.value++;
 
     return {
       ok: true,
       mensaje: "Solicitud realizada con éxito."
     };
+  },
+
+  /**
+   * Libros con al menos un ejemplar disponible en una sucursal (para el mapa).
+   */
+  getLibrosDisponiblesEnSucursal(sucursalId) {
+    return libros
+      .map((libro) => ({
+        libro,
+        cantidad: stockMap.get(libro.id)?.get(Number(sucursalId)) || 0
+      }))
+      .filter((item) => item.cantidad > 0);
   },
 
   // ==========================================

@@ -31,6 +31,8 @@ Las rutas están definidas en `src/router/index.js` con Vue Router 4:
 | Inicio | `/#/` | `src/views/InicioView.vue` |
 | Listado | `/#/libros` | `src/views/ListadoView.vue` |
 | Detalle por ID | `/#/libros/2` | `src/views/DetalleView.vue` |
+| Sucursales (mapa) | `/#/sucursales` | `src/views/SucursalesView.vue` |
+| Mis amigos (requiere sesión) | `/#/amigos` | `src/views/AmigosView.vue` |
 | Iniciar sesión | `/#/login` | `src/views/LoginView.vue` |
 | Panel Administrador | `/#/admin` | `src/views/AdminView.vue` |
 
