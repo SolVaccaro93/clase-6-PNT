@@ -112,13 +112,26 @@ export const BibliotecaService = {
         genero = generosEjemplo[index % generosEjemplo.length];
       }
 
+      // Obtención de portadas desde la API de OpenLibrary Covers
+      let portada = null;
+      let portadaGrande = null;
+      if (doc.cover_i) {
+        portada = `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg`;
+        portadaGrande = `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`;
+      } else if (doc.cover_edition_key) {
+        portada = `https://covers.openlibrary.org/b/olid/${doc.cover_edition_key}-M.jpg`;
+        portadaGrande = `https://covers.openlibrary.org/b/olid/${doc.cover_edition_key}-L.jpg`;
+      }
+
       return {
         id: index + 1,
         // Clave estable de OpenLibrary (ej: "/works/OL123W"), no depende del orden de la API
         clave: doc.key,
         titulo: doc.title,
         autor: doc.author_name ? doc.author_name[0] : "Autor desconocido",
-        genero: genero
+        genero: genero,
+        portada,
+        portadaGrande
       };
     });
 

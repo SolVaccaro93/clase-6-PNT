@@ -18,8 +18,22 @@ const disponibilidad = ref([]);
 const sucursalSeleccionada = ref("");
 const mensajeExito = ref("");
 const mensajeError = ref("");
+const imagenFallida = ref(false);
+
 const prestamoActivo = computed(() => BibliotecaService.obtenerPrestamoActivo());
 const prestamoDelLibro = computed(() => prestamoActivo.value?.clave_libro === props.libro.clave ? prestamoActivo.value : null);
+
+// URL de portada (mediana para catálogo, grande o mediana para vista detalle)
+const portadaUrl = computed(() => {
+  if (!props.libro) return null;
+  return props.mostrarDetalle
+    ? (props.libro.portada || null)
+    : (props.libro.portadaGrande || props.libro.portada || null);
+});
+
+watch(() => props.libro?.id, () => {
+  imagenFallida.value = false;
+});
 
 // Consulta la disponibilidad al service
 function cargarDisponibilidad() {
@@ -75,7 +89,24 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
 </script>
 
 <template>
-  <div class="card">
+  <div class="card" :class="{ 'card-detalle': !mostrarDetalle }">
+    <!-- Portada del libro (Preview en catálogo / Portada destacada en detalle) -->
+    <div class="portada-contenedor" :class="{ 'portada-detalle': !mostrarDetalle }">
+      <img
+        v-if="portadaUrl && !imagenFallida"
+        :src="portadaUrl"
+        :alt="`Portada del libro ${libro.titulo}`"
+        class="portada-img"
+        loading="lazy"
+        @error="imagenFallida = true"
+      />
+      <div v-else class="portada-fallback" aria-hidden="true">
+        <span class="fallback-icono">📖</span>
+        <span class="fallback-titulo">{{ libro.titulo }}</span>
+        <span class="fallback-autor">{{ libro.autor }}</span>
+      </div>
+    </div>
+
     <span class="genero">{{ libro.genero }}</span>
     <h2>{{ libro.titulo }}</h2>
     <p class="autor">Autor: {{ libro.autor }}</p>
@@ -99,12 +130,12 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
 
     <!-- Interacción de Solicitar (con protección de login on-demand) -->
     <div v-if="prestamoDelLibro" class="acciones">
-      <p>Estado: <strong>leyendo</strong> ? Retirado en {{ prestamoDelLibro.sucursal }}</p>
+      <p>Estado: <strong>leyendo</strong> • Retirado en {{ prestamoDelLibro.sucursal }}</p>
       <button @click="devolver">Devolver y terminar</button>
     </div>
     <p v-else-if="prestamoActivo" role="status">
-      Ya ten?s un libro activo: {{ prestamoActivo.titulo }}.
-      <RouterLink :to="{ name: 'prestamos' }">Devolver desde Mis pr?stamos</RouterLink>
+      Ya tenés un libro activo: {{ prestamoActivo.titulo }}.
+      <RouterLink :to="{ name: 'prestamos' }">Devolver desde Mis préstamos</RouterLink>
     </p>
     <div v-else class="acciones">
       <label class="campo-sucursal">
@@ -143,6 +174,86 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
   display: flex;
   flex-direction: column;
   gap: 10px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Portada del libro (preview y detalle) */
+.portada-contenedor {
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(180deg, #181b22 0%, #1e222d 100%);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid #2e3440;
+  position: relative;
+}
+
+.portada-img {
+  max-height: 190px;
+  max-width: 135px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  transition: transform 0.25s ease;
+}
+
+.card:hover .portada-img {
+  transform: scale(1.04);
+}
+
+/* Estilo destacado de portada en vista de detalle */
+.portada-contenedor.portada-detalle {
+  height: 290px;
+  max-width: 220px;
+  margin: 0 auto 6px auto;
+  background: linear-gradient(180deg, #181b22 0%, #242936 100%);
+  border: 1px solid #3b4252;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.portada-contenedor.portada-detalle .portada-img {
+  max-height: 270px;
+  max-width: 190px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.portada-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1f2430 0%, #2e3440 100%);
+}
+
+.fallback-icono {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.fallback-titulo {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #e5e9f0;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.fallback-autor {
+  font-size: 0.72rem;
+  color: #88c0d0;
 }
 
 .genero {
