@@ -110,6 +110,54 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
     <span class="genero">{{ libro.genero }}</span>
     <h2>{{ libro.titulo }}</h2>
     <p class="autor">Autor: {{ libro.autor }}</p>
+
+    <!-- Metadatos rápidos en el catálogo (páginas, año, puntaje de la crítica) -->
+    <div v-if="mostrarDetalle" class="metadatos-preview">
+      <span class="meta-chip chip-paginas" :title="`Cantidad de páginas: ${libro.paginas}`">
+        📄 {{ libro.paginas }} págs.
+      </span>
+      <span class="meta-chip chip-anio" :title="`Año de publicación: ${libro.anioPublicacion}`">
+        📅 {{ libro.anioPublicacion }}
+      </span>
+      <span class="meta-chip chip-puntaje" :title="`Puntaje de la crítica: ${libro.puntajeTexto} (${libro.criticasTotal} críticas)`">
+        ⭐ {{ libro.puntaje }} <span class="meta-sub">/ 5</span>
+      </span>
+    </div>
+
+    <!-- Ficha Técnica Completa (exclusiva de la vista de Detalle) -->
+    <div v-else class="ficha-tecnica">
+      <h3 class="ficha-titulo">📋 Ficha Técnica</h3>
+      <div class="ficha-grid">
+        <div class="ficha-item">
+          <span class="ficha-label">📅 Año de Publicación</span>
+          <span class="ficha-valor">{{ libro.anioPublicacion }}</span>
+        </div>
+        <div class="ficha-item">
+          <span class="ficha-label">📄 Cantidad de Páginas</span>
+          <span class="ficha-valor">{{ libro.paginas }} páginas</span>
+        </div>
+        <div class="ficha-item">
+          <span class="ficha-label">⭐ Puntaje de la Crítica</span>
+          <span class="ficha-valor valor-puntaje">
+            {{ libro.puntajeTexto }}
+            <small v-if="libro.criticasTotal" class="criticas-count">({{ libro.criticasTotal }} críticas)</small>
+          </span>
+        </div>
+        <div class="ficha-item">
+          <span class="ficha-label">🏢 Editorial</span>
+          <span class="ficha-valor">{{ libro.editorial }}</span>
+        </div>
+        <div class="ficha-item">
+          <span class="ficha-label">🌐 Idioma</span>
+          <span class="ficha-valor">{{ libro.idioma }}</span>
+        </div>
+        <div class="ficha-item">
+          <span class="ficha-label">📚 Ediciones Registradas</span>
+          <span class="ficha-valor">{{ libro.ediciones }}</span>
+        </div>
+      </div>
+    </div>
+
     <VotoLibro :libro="libro" />
     <RouterLink v-if="mostrarDetalle" :to="{ name: 'detalle', params: { id: libro.id } }">
       Ver detalle<span class="sr-only"> de {{ libro.titulo }}</span> →
@@ -346,5 +394,112 @@ select {
   background-color: rgba(191, 97, 106, 0.2);
   color: #d08770;
   border: 1px solid #bf616a;
+}
+
+/* Metadatos rápidos en el catálogo */
+.metadatos-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 2px 0 4px 0;
+}
+
+.meta-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.74rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background-color: #2e3440;
+  border: 1px solid #434c5e;
+  color: #eceff4;
+  font-weight: 500;
+}
+
+.chip-puntaje {
+  background-color: rgba(235, 203, 139, 0.15);
+  border-color: rgba(235, 203, 139, 0.4);
+  color: #ebcb8b;
+  font-weight: 600;
+}
+
+.chip-paginas {
+  background-color: rgba(136, 192, 208, 0.12);
+  border-color: rgba(136, 192, 208, 0.3);
+  color: #88c0d0;
+}
+
+.chip-anio {
+  background-color: rgba(129, 161, 193, 0.12);
+  border-color: rgba(129, 161, 193, 0.3);
+  color: #81a1c1;
+}
+
+.meta-sub {
+  font-size: 0.65rem;
+  opacity: 0.8;
+  margin-left: 2px;
+}
+
+/* Ficha Técnica completa en Vista Detalle */
+.ficha-tecnica {
+  background: #1e222d;
+  border: 1px solid #3b4252;
+  border-radius: 8px;
+  padding: 14px;
+  margin: 8px 0;
+}
+
+.ficha-titulo {
+  margin: 0 0 10px 0;
+  font-size: 0.95rem;
+  color: #88c0d0;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  border-bottom: 1px solid #2e3440;
+  padding-bottom: 6px;
+}
+
+.ficha-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.ficha-item {
+  background: #242936;
+  border: 1px solid #2e3440;
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ficha-label {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+}
+
+.ficha-valor {
+  font-size: 0.88rem;
+  color: #eceff4;
+  font-weight: 600;
+}
+
+.valor-puntaje {
+  color: #ebcb8b;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.criticas-count {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  font-weight: normal;
 }
 </style>
