@@ -20,8 +20,7 @@ const mensajeExito = ref("");
 const mensajeError = ref("");
 const imagenFallida = ref(false);
 
-const prestamoActivo = computed(() => BibliotecaService.obtenerPrestamoActivo());
-const prestamoDelLibro = computed(() => prestamoActivo.value?.clave_libro === props.libro.clave ? prestamoActivo.value : null);
+const prestamoDelLibro = computed(() => BibliotecaService.obtenerPrestamoActivoDeLibro(props.libro.clave));
 
 // URL de portada (mediana para catálogo, grande o mediana para vista detalle)
 const portadaUrl = computed(() => {
@@ -181,10 +180,6 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
       <p>Estado: <strong>leyendo</strong> • Retirado en {{ prestamoDelLibro.sucursal }}</p>
       <button @click="devolver">Devolver y terminar</button>
     </div>
-    <p v-else-if="prestamoActivo" role="status">
-      Ya tenés un libro activo: {{ prestamoActivo.titulo }}.
-      <RouterLink :to="{ name: 'prestamos' }">Devolver desde Mis préstamos</RouterLink>
-    </p>
     <div v-else class="acciones">
       <label class="campo-sucursal">
         <span>Sucursal</span>

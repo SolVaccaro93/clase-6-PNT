@@ -269,20 +269,24 @@ export const BibliotecaService = {
     return datos.prestamos.filter((p) => p.id_usuario === idUsuario).map((p) => ({ ...p }));
   },
 
-  obtenerPrestamoActivo() {
-    return this.obtenerPrestamos().find((p) => p.fecha_devolucion === null) || null;
+  obtenerPrestamosActivos() {
+    return this.obtenerPrestamos().filter((p) => p.fecha_devolucion === null);
+  },
+
+  obtenerPrestamoActivoDeLibro(claveLibro) {
+    return this.obtenerPrestamosActivos().find((p) => p.clave_libro === claveLibro) || null;
   },
 
   retirar(libroId, sucursalId) {
     const idUsuario = usuarioActual();
-    if (this.obtenerPrestamoActivo()) {
-      throw new Error("Ya tenés un libro activo. Devolvelo antes de retirar otro.");
-    }
     const idLibroNum = Number(libroId);
     const idSucursalNum = Number(sucursalId);
     const libro = this.getLibroPorId(idLibroNum);
     const sucursal = SUCURSALES.find((s) => s.id === idSucursalNum);
     if (!libro || !sucursal) throw new Error("El libro o la sucursal no existen.");
+    if (this.obtenerPrestamoActivoDeLibro(libro.clave)) {
+      throw new Error("Ya tenés este libro prestado. Devolvelo antes de retirarlo de nuevo.");
+    }
 
     const stockLibro = stockMap.get(idLibroNum);
     const stockActual = stockLibro ? stockLibro.get(idSucursalNum) || 0 : 0;

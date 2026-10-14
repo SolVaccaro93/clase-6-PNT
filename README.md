@@ -46,9 +46,9 @@ Para evaluar la aplicación rápidamente desde la pantalla de login:
 
 ## Retiro y devolución
 
-Con sesión iniciada, elegí una sucursal con stock y pulsá **Retirar libro**. Se descuenta un ejemplar y el préstamo queda en `leyendo`. Cada usuario puede tener un solo préstamo activo.
+Con sesión iniciada, elegí una sucursal con stock y pulsá **Retirar libro**. Se descuenta un ejemplar y el préstamo queda en `leyendo`. Cada usuario puede tener varios préstamos activos, pero no el mismo libro dos veces a la vez.
 
-Desde la tarjeta del libro o **Mis préstamos**, pulsá **Devolver y terminar**. Se repone el ejemplar en la sucursal original, se registra la fecha de devolución y el estado pasa a `terminado`. El historial se conserva y se habilita otro retiro.
+Desde la tarjeta del libro o **Mis préstamos**, pulsá **Devolver y terminar**. Se repone el ejemplar en la sucursal original, se registra la fecha de devolución y el estado pasa a `terminado`. El historial se conserva y se puede volver a retirar ese libro.
 
 Los préstamos y el stock se guardan juntos en localStorage y sobreviven a recargas y cambios de sesión. Son datos locales de este navegador; el proyecto todavía no tiene un backend compartido entre dispositivos. Las lecturas registradas también aparecen en Mis amigos junto con los datos de demostración.
 
