@@ -6,6 +6,16 @@ import LibroCard from "../components/LibroCard.vue";
 const busqueda = ref("");
 const generoSeleccionado = ref("Todos");
 const generos = ref(["Todos"]);
+
+// Requerimiento: Buscar por cantidad de estrellas - Sol
+const estrellasMinimas = ref(0);
+const OPCIONES_ESTRELLAS = [
+  { valor: 0, texto: "Todas" },
+  { valor: 3, texto: "⭐ 3 o más" },
+  { valor: 3.5, texto: "⭐ 3,5 o más" },
+  { valor: 4, texto: "⭐ 4 o más" },
+  { valor: 4.5, texto: "⭐ 4,5 o más" }
+];
 const libros = ref([]);
 const isLoading = ref(true);
 const error = ref("");
@@ -27,7 +37,9 @@ async function cargarLibros() {
 
 // Filtrado de libros con el service acordado
 const librosFiltrados = computed(() => {
-  return libros.value.length ? BibliotecaService.buscar(busqueda.value, generoSeleccionado.value) : [];
+  return libros.value.length
+    ? BibliotecaService.buscar(busqueda.value, generoSeleccionado.value, estrellasMinimas.value)
+    : [];
 });
 
 onMounted(() => {
@@ -71,6 +83,15 @@ onMounted(() => {
             </option>
           </select>
         </label>
+
+        <label class="campo campo-estrellas">
+          <span>Estrellas</span>
+          <select v-model.number="estrellasMinimas">
+            <option v-for="opcion in OPCIONES_ESTRELLAS" :key="opcion.valor" :value="opcion.valor">
+              {{ opcion.texto }}
+            </option>
+          </select>
+        </label>
       </div>
 
       <!-- Grilla de libros -->
@@ -111,6 +132,10 @@ onMounted(() => {
   flex: 0 1 220px;
 }
 
+.campo-estrellas {
+  flex: 0 1 150px;
+}
+
 .grilla {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
@@ -126,7 +151,8 @@ p {
     flex-direction: column;
   }
 
-  .campo-genero {
+  .campo-genero,
+  .campo-estrellas {
     flex: auto;
   }
 }

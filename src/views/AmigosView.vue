@@ -6,12 +6,19 @@ import { ref, computed, watch } from "vue";
 import { cambiosPrestamos } from "../services/bibliotecaService.js";
 import { AuthService } from "../services/authService.js";
 import { AmigosService } from "../services/amigosService.js";
+import FeedLecturas from "../components/FeedLecturas.vue";
 
 const amigos = ref([]);
-const solicitudes = ref([]);
+const feed = ref([]);
+const vista = ref("actividad");
 const filtro = ref("todos");
 const isLoading = ref(true);
 const error = ref("");
+
+const PESTANAS = [
+  { valor: "actividad", texto: "Actividad" },
+  { valor: "amigos", texto: "Amigos" }
+];
 
 const FILTROS = [
   { valor: "todos", texto: "Todos" },
@@ -25,7 +32,7 @@ const usuario = computed(() => AuthService.usuario);
 async function cargarAmigos() {
   if (!usuario.value) {
     amigos.value = [];
-    solicitudes.value = [];
+    feed.value = [];
     isLoading.value = false;
     return;
   }
@@ -33,9 +40,9 @@ async function cargarAmigos() {
   error.value = "";
   try {
     const idUsuario = usuario.value.usuario;
-    [amigos.value, solicitudes.value] = await Promise.all([
+    [amigos.value, feed.value] = await Promise.all([
       AmigosService.getAmigosConLecturas(idUsuario),
-      AmigosService.getSolicitudesPendientes(idUsuario)
+      AmigosService.getFeedActividad(idUsuario)
     ]);
   } catch (e) {
     error.value = e.message || "No se pudieron cargar tus amigos.";
@@ -80,11 +87,45 @@ watch([() => usuario.value?.usuario, cambiosPrestamos], cargarAmigos, { immediat
     </div>
 
     <template v-else>
-      <p v-if="solicitudes.length" class="aviso-solicitudes">
-        Tenés {{ solicitudes.length }} solicitud{{ solicitudes.length > 1 ? "es" : "" }} de amistad pendiente{{ solicitudes.length > 1 ? "s" : "" }}:
-        {{ solicitudes.map((s) => s.nombre).join(", ") }}
-      </p>
+      <!-- Fila de "historias": el aro de color indica que el amigo está leyendo algo -->
+      <ul v-if="amigos.length" class="historias" aria-label="Tus amigos">
+        <li
+          v-for="amigo in amigos"
+          :key="amigo.id_usuario"
+          class="historia"
+          :title="amigo.leyendo.length ? `Está leyendo ${amigo.leyendo[0].titulo}` : 'No está leyendo nada ahora'"
+        >
+          <span class="aro" :class="{ leyendo: amigo.leyendo.length }">
+            <span class="avatar-historia" aria-hidden="true">{{ inicial(amigo.nombre) }}</span>
+          </span>
+          <span class="nombre-historia">{{ amigo.nombre.split(" ")[0] }}</span>
+          <span class="sr-only">{{ amigo.leyendo.length ? "está leyendo" : "no está leyendo" }}</span>
+        </li>
+      </ul>
 
+      <!-- Requerimiento: Feed tipo Instagram - Sol -->
+      <div class="pestanas" role="group" aria-label="Qué querés ver">
+        <button
+          v-for="p in PESTANAS"
+          :key="p.valor"
+          type="button"
+          class="btn-pestana"
+          :class="{ activo: vista === p.valor }"
+          :aria-pressed="vista === p.valor"
+          @click="vista = p.valor"
+        >
+          {{ p.texto }}
+        </button>
+      </div>
+
+      <template v-if="vista === 'actividad'">
+        <p v-if="feed.length === 0" class="estado" role="status">
+          Todavía no hay actividad. Cuando vos o tus amigos retiren o terminen un libro, va a aparecer acá.
+        </p>
+        <FeedLecturas v-else :publicaciones="feed" />
+      </template>
+
+      <template v-else>
       <div class="filtros" role="group" aria-label="Filtrar por estado de lectura">
         <button
           v-for="f in FILTROS"
@@ -134,19 +175,85 @@ watch([() => usuario.value?.usuario, cambiosPrestamos], cargarAmigos, { immediat
           </div>
         </li>
       </ul>
+      </template>
     </template>
   </section>
 </template>
 
 <style scoped>
-.aviso-solicitudes {
+.historias {
+  list-style: none;
   margin: 0 0 16px;
-  padding: 8px 12px;
-  background-color: rgba(136, 192, 208, 0.15);
-  border: 1px solid #88c0d0;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  color: #88c0d0;
+  padding: 4px 2px 8px;
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+}
+
+.historia {
+  flex-shrink: 0;
+  width: 68px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.aro {
+  padding: 3px;
+  border-radius: 50%;
+  background: #4c566a;
+}
+
+.aro.leyendo {
+  background: linear-gradient(45deg, #f9ce34, #ee2a7b, #6228d7);
+}
+
+.avatar-historia {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 3px solid #1a1d24;
+  background-color: #5e81ac;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.nombre-historia {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: #d8dee9;
+}
+
+.pestanas {
+  display: flex;
+  border-bottom: 1px solid #3b4252;
+  margin-bottom: 20px;
+}
+
+.btn-pestana {
+  flex: 1;
+  background: none;
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+  color: #d8dee9;
+  font-weight: 600;
+}
+
+.btn-pestana:hover {
+  background-color: #242936;
+}
+
+.btn-pestana.activo {
+  color: #ffffff;
+  border-bottom-color: #88c0d0;
 }
 
 .filtros {

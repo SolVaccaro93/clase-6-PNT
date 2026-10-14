@@ -212,9 +212,10 @@ export const BibliotecaService = {
   },
 
   /**
-   * Busca libros por título o autor, y opcionalmente por género.
+   * Busca libros por título o autor, y opcionalmente por género
+   * y por cantidad mínima de estrellas (puntaje de 0 a 5).
    */
-  buscar(texto = "", genero = "") {
+  buscar(texto = "", genero = "", estrellasMinimas = 0) {
     const busquedaLimpia = texto.trim().toLowerCase();
     const generoLimpio = genero.trim().toLowerCase();
 
@@ -229,7 +230,9 @@ export const BibliotecaService = {
         generoLimpio === "todos" ||
         libro.genero.toLowerCase() === generoLimpio;
 
-      return coincideTexto && coincideGenero;
+      const coincideEstrellas = (libro.puntaje ?? 0) >= Number(estrellasMinimas);
+
+      return coincideTexto && coincideGenero && coincideEstrellas;
     });
   },
 

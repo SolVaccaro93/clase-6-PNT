@@ -53,3 +53,29 @@ Desde la tarjeta del libro o **Mis préstamos**, pulsá **Devolver y terminar**.
 Los préstamos y el stock se guardan juntos en localStorage y sobreviven a recargas y cambios de sesión. Son datos locales de este navegador; el proyecto todavía no tiene un backend compartido entre dispositivos. Las lecturas registradas también aparecen en Mis amigos junto con los datos de demostración.
 
 Para verificar las reglas de préstamos: `npm test`.
+
+## Buscador del listado
+
+En **Listado** se puede filtrar por texto (título o autor), por género y por **estrellas**: el selector "Estrellas" muestra solo los libros con ese puntaje o más (3, 3,5, 4 o 4,5). Los tres filtros se combinan.
+
+## Mis amigos y feed de actividad
+
+Con sesión iniciada, **Mis amigos** muestra una fila de "historias" con el avatar de cada amigo (el aro de colores indica que está leyendo algo) y dos pestañas:
+
+* **Actividad:** feed tipo Instagram con publicaciones ordenadas por fecha. Cada una muestra quién empezó o terminó de leer un libro, cuándo, la portada, la sucursal y cuántos días tardó en leerlo. Incluye tus propias lecturas.
+* **Amigos:** lista de amigos con lo que están leyendo y lo que terminaron.
+
+Los amigos son datos de demostración; las lecturas combinan esos datos con los préstamos reales de la app.
+
+## Documentación técnica
+
+El detalle de cada funcionalidad está en la carpeta `docs/`:
+
+| Tema | Archivo |
+| --- | --- |
+| Portadas de los libros | `docs/DOCUMENTACION_CAMBIOS_PORTADAS.md` |
+| Metadatos y puntaje de los libros | `docs/DOCUMENTACION_METADATOS_LIBROS.md` |
+| Múltiples préstamos | `docs/DOCUMENTACION_MULTIPLES_PRESTAMOS.md` |
+| Fecha de devolución y tardanza | `docs/DOCUMENTACION_FECHA_DEVOLUCION.md` |
+| Feed de actividad (tipo Instagram) | `docs/DOCUMENTACION_FEED_ACTIVIDAD.md` |
+| Filtro por cantidad de estrellas | `docs/DOCUMENTACION_FILTRO_ESTRELLAS.md` |
