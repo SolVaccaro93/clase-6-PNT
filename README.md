@@ -56,7 +56,14 @@ Para verificar las reglas de préstamos: `npm test`.
 
 ## Buscador del listado
 
-En **Listado** se puede filtrar por texto (título o autor), por género y por **estrellas**: el selector "Estrellas" muestra solo los libros con ese puntaje o más (3, 3,5, 4 o 4,5). Los tres filtros se combinan.
+En **Listado** se puede filtrar por:
+
+* **Texto:** título o autor.
+* **Género.**
+* **Estrellas:** solo los libros con ese puntaje o más (3, 3,5, 4 o 4,5).
+* **Páginas:** hasta 200, de 201 a 400, o más de 400.
+
+Los filtros se combinan: un libro aparece solo si los cumple todos.
 
 ## Mis amigos y feed de actividad
 
@@ -79,3 +86,4 @@ El detalle de cada funcionalidad está en la carpeta `docs/`:
 | Fecha de devolución y tardanza | `docs/DOCUMENTACION_FECHA_DEVOLUCION.md` |
 | Feed de actividad (tipo Instagram) | `docs/DOCUMENTACION_FEED_ACTIVIDAD.md` |
 | Filtro por cantidad de estrellas | `docs/DOCUMENTACION_FILTRO_ESTRELLAS.md` |
+| Filtro por cantidad de páginas | `docs/DOCUMENTACION_FILTRO_PAGINAS.md` |

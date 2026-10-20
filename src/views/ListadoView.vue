@@ -16,6 +16,16 @@ const OPCIONES_ESTRELLAS = [
   { valor: 4, texto: "⭐ 4 o más" },
   { valor: 4.5, texto: "⭐ 4,5 o más" }
 ];
+
+// Requerimiento: Buscar por cantidad de páginas - Sol
+const rangoPaginas = ref("todas");
+const OPCIONES_PAGINAS = [
+  { valor: "todas", texto: "Todas", rango: null },
+  { valor: "cortos", texto: "📄 Hasta 200", rango: { min: 0, max: 200 } },
+  { valor: "medianos", texto: "📄 201 a 400", rango: { min: 201, max: 400 } },
+  { valor: "largos", texto: "📄 Más de 400", rango: { min: 401, max: Infinity } }
+];
+
 const libros = ref([]);
 const isLoading = ref(true);
 const error = ref("");
@@ -37,9 +47,14 @@ async function cargarLibros() {
 
 // Filtrado de libros con el service acordado
 const librosFiltrados = computed(() => {
-  return libros.value.length
-    ? BibliotecaService.buscar(busqueda.value, generoSeleccionado.value, estrellasMinimas.value)
-    : [];
+  if (!libros.value.length) return [];
+  const opcionPaginas = OPCIONES_PAGINAS.find((o) => o.valor === rangoPaginas.value);
+  return BibliotecaService.buscar(
+    busqueda.value,
+    generoSeleccionado.value,
+    estrellasMinimas.value,
+    opcionPaginas?.rango ?? null
+  );
 });
 
 onMounted(() => {
@@ -92,6 +107,15 @@ onMounted(() => {
             </option>
           </select>
         </label>
+
+        <label class="campo campo-paginas">
+          <span>Páginas</span>
+          <select v-model="rangoPaginas">
+            <option v-for="opcion in OPCIONES_PAGINAS" :key="opcion.valor" :value="opcion.valor">
+              {{ opcion.texto }}
+            </option>
+          </select>
+        </label>
       </div>
 
       <!-- Grilla de libros -->
@@ -132,7 +156,8 @@ onMounted(() => {
   flex: 0 1 220px;
 }
 
-.campo-estrellas {
+.campo-estrellas,
+.campo-paginas {
   flex: 0 1 150px;
 }
 
@@ -152,7 +177,8 @@ p {
   }
 
   .campo-genero,
-  .campo-estrellas {
+  .campo-estrellas,
+  .campo-paginas {
     flex: auto;
   }
 }

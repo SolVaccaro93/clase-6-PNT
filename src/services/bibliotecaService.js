@@ -213,9 +213,10 @@ export const BibliotecaService = {
 
   /**
    * Busca libros por título o autor, y opcionalmente por género
-   * y por cantidad mínima de estrellas (puntaje de 0 a 5).
+   * por cantidad mínima de estrellas (puntaje de 0 a 5) y por rango de páginas.
+   * @param {{ min: number, max: number } | null} rangoPaginas Ambos extremos incluidos; null = sin filtro
    */
-  buscar(texto = "", genero = "", estrellasMinimas = 0) {
+  buscar(texto = "", genero = "", estrellasMinimas = 0, rangoPaginas = null) {
     const busquedaLimpia = texto.trim().toLowerCase();
     const generoLimpio = genero.trim().toLowerCase();
 
@@ -232,7 +233,11 @@ export const BibliotecaService = {
 
       const coincideEstrellas = (libro.puntaje ?? 0) >= Number(estrellasMinimas);
 
-      return coincideTexto && coincideGenero && coincideEstrellas;
+      const coincidePaginas =
+        !rangoPaginas ||
+        (libro.paginas >= rangoPaginas.min && libro.paginas <= rangoPaginas.max);
+
+      return coincideTexto && coincideGenero && coincideEstrellas && coincidePaginas;
     });
   },
 
