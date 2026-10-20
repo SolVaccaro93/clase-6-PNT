@@ -100,9 +100,10 @@ function inicial(nombre) {
 }
 
 .publicacion {
-  background-color: #242936;
-  border: 1px solid #3b4252;
-  border-radius: 10px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-chica);
   overflow: hidden;
   overflow-wrap: anywhere;
 }
@@ -119,18 +120,18 @@ function inicial(nombre) {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background-color: #5e81ac;
+  background-color: var(--color-primary);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  box-shadow: 0 0 0 2px #242936, 0 0 0 4px #88c0d0;
+  box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-accent);
 }
 
 .avatar.propio {
-  background-color: #b48ead;
-  box-shadow: 0 0 0 2px #242936, 0 0 0 4px #b48ead;
+  background-color: var(--color-rose);
+  box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-rose);
 }
 
 .autor-pub {
@@ -147,18 +148,18 @@ function inicial(nombre) {
 
 .vos {
   font-weight: normal;
-  color: #d8dee9;
+  color: var(--color-text-muted);
 }
 
 .autor-pub time {
   font-size: 0.8rem;
-  color: #d8dee9;
+  color: var(--color-text-muted);
 }
 
 .imagen {
   position: relative;
   height: 340px;
-  background-color: #1e222d;
+  background-color: var(--color-bg-nested);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -175,9 +176,10 @@ function inicial(nombre) {
   max-width: 70%;
   height: 280px;
   padding: 20px 16px;
-  border-radius: 4px 10px 10px 4px;
-  border-left: 8px solid #4c566a;
-  background: linear-gradient(160deg, #5e81ac, #3b4252);
+  /* Redondeo asimétrico: imita el lomo del libro (recto a la izquierda) */
+  border-radius: var(--radio-chico) var(--radio) var(--radio) var(--radio-chico);
+  border-left: 8px solid var(--color-border-light);
+  background: linear-gradient(160deg, var(--color-primary), var(--color-border));
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -193,7 +195,7 @@ function inicial(nombre) {
 }
 
 .tapa-autor {
-  color: #e5e9f0;
+  color: var(--color-text-light);
   font-size: 0.85rem;
 }
 
@@ -202,19 +204,19 @@ function inicial(nombre) {
   left: 12px;
   bottom: 12px;
   padding: 4px 10px;
-  border-radius: 20px;
+  border-radius: var(--radio-pill);
   font-size: 0.8rem;
   font-weight: 600;
-  background-color: rgba(26, 29, 36, 0.9);
+  background-color: color-mix(in srgb, var(--color-bg) 90%, transparent);
   border: 1px solid;
 }
 
 .etiqueta.empezo {
-  color: #ebcb8b;
+  color: var(--color-gold);
 }
 
 .etiqueta.termino {
-  color: #a3be8c;
+  color: var(--color-success);
 }
 
 .pie {
@@ -230,7 +232,7 @@ function inicial(nombre) {
 }
 
 .texto {
-  color: #eceff4;
+  color: var(--color-text);
 }
 
 .texto strong {
@@ -239,6 +241,6 @@ function inicial(nombre) {
 
 .detalle {
   font-size: 0.8rem;
-  color: #d8dee9;
+  color: var(--color-text-muted);
 }
 </style>

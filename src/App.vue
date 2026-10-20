@@ -77,7 +77,7 @@ function cerrarSesion() {
 .encabezado {
   margin-bottom: 24px;
   padding-bottom: 20px;
-  border-bottom: 1px solid #3b4252;
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -100,7 +100,7 @@ h1 {
 
 .barra-superior p {
   margin: 0;
-  color: #d8dee9;
+  color: var(--color-text-muted);
 }
 
 .usuario-area {
@@ -112,10 +112,10 @@ h1 {
   display: flex;
   align-items: center;
   gap: 12px;
-  background-color: #242936;
-  border: 1px solid #3b4252;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
   padding: 6px 12px;
-  border-radius: 8px;
+  border-radius: var(--radio);
 }
 
 .datos-usuario {
@@ -127,24 +127,24 @@ h1 {
 .nombre-usuario {
   font-size: 0.85rem;
   font-weight: bold;
-  color: #eceff4;
+  color: var(--color-text);
 }
 
 .badge-rol {
   font-size: 0.7rem;
-  padding: 1px 6px;
-  border-radius: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radio-pill);
   text-transform: uppercase;
   font-weight: 600;
 }
 
 .rol-admin {
-  background-color: #bf616a;
+  background-color: var(--color-danger);
   color: white;
 }
 
 .rol-visita {
-  background-color: #5e81ac;
+  background-color: var(--color-primary);
   color: white;
 }
 
@@ -152,32 +152,32 @@ h1 {
   min-height: auto;
   padding: 6px 10px;
   font-size: 0.8rem;
-  background-color: #3b4252;
-  color: #d8dee9;
-  border: 1px solid #4c566a;
-  border-radius: 4px;
+  background-color: var(--color-border);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radio-chico);
 }
 
 .btn-logout:hover {
-  background-color: #bf616a;
+  background-color: var(--color-danger);
   color: white;
 }
 
 .btn-login-header {
   display: inline-block;
   padding: 8px 14px;
-  background-color: #3b4252;
-  border: 1px solid #4c566a;
-  border-radius: 6px;
-  color: #eceff4;
+  background-color: var(--color-border);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radio-chico);
+  color: var(--color-text);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
 }
 
 .btn-login-header:hover {
-  background-color: #434c5e;
-  border-color: #88c0d0;
+  background-color: var(--color-border-hover);
+  border-color: var(--color-accent);
 }
 
 nav {
@@ -188,20 +188,20 @@ nav {
 
 nav a {
   padding: 8px 16px;
-  border: 1px solid #4c566a;
-  border-radius: 6px;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radio-chico);
   text-decoration: none;
-  color: #d8dee9;
+  color: var(--color-text-muted);
 }
 
 nav a.router-link-exact-active {
-  background-color: #3b4252;
+  background-color: var(--color-border);
   color: #ffffff;
-  border-color: #88c0d0;
+  border-color: var(--color-accent);
 }
 
 .link-admin {
-  border-color: #88c0d0;
-  color: #88c0d0;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 </style>

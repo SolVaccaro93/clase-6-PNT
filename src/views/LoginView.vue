@@ -111,14 +111,14 @@ function entrarComo(usuarioDemo, claveDemo) {
 .card-login {
   width: 100%;
   max-width: 440px;
-  background-color: #242936;
-  border: 1px solid #3b4252;
-  border-radius: 10px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radio);
   padding: 28px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--sombra);
 }
 
 .login-header {
@@ -139,18 +139,18 @@ function entrarComo(usuarioDemo, claveDemo) {
 
 .subtitulo {
   margin: 0;
-  color: #d8dee9;
+  color: var(--color-text-muted);
   font-size: 0.9rem;
 }
 
 .aviso-redirect {
   margin: 8px 0 0;
   padding: 8px 12px;
-  background-color: rgba(136, 192, 208, 0.15);
-  border: 1px solid #88c0d0;
-  border-radius: 6px;
+  background-color: color-mix(in srgb, var(--color-accent) 15%, transparent);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radio-chico);
   font-size: 0.85rem;
-  color: #88c0d0;
+  color: var(--color-accent);
 }
 
 .form-login {
@@ -164,33 +164,33 @@ function entrarComo(usuarioDemo, claveDemo) {
   flex-direction: column;
   gap: 6px;
   font-size: 0.9rem;
-  color: #d8dee9;
+  color: var(--color-text-muted);
 }
 
 .btn-ingresar {
   margin-top: 8px;
-  background-color: #5e81ac;
+  background-color: var(--color-primary);
   color: white;
   padding: 10px;
-  border-radius: 6px;
+  border-radius: var(--radio-chico);
   font-size: 1rem;
 }
 
 .btn-ingresar:hover {
-  background-color: #81a1c1;
+  background-color: var(--color-primary-hover);
 }
 
 .seccion-demo {
-  background-color: #1e222d;
-  border: 1px dashed #3b4252;
-  border-radius: 6px;
+  background-color: var(--color-bg-nested);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radio-chico);
   padding: 14px;
 }
 
 .titulo-demo {
   margin: 0 0 8px;
   font-size: 0.85rem;
-  color: #88c0d0;
+  color: var(--color-accent);
   font-weight: bold;
 }
 
@@ -201,12 +201,12 @@ function entrarComo(usuarioDemo, claveDemo) {
 }
 
 .btn-demo {
-  background-color: #2e3440;
-  border: 1px solid #4c566a;
-  color: #eceff4;
+  background-color: var(--color-surface-alt);
+  border: 1px solid var(--color-border-light);
+  color: var(--color-text);
   padding: 8px 12px;
   text-align: left;
-  border-radius: 6px;
+  border-radius: var(--radio-chico);
   font-size: 0.85rem;
   cursor: pointer;
   display: flex;
@@ -215,22 +215,22 @@ function entrarComo(usuarioDemo, claveDemo) {
 }
 
 .btn-demo:hover {
-  background-color: #3b4252;
-  border-color: #88c0d0;
+  background-color: var(--color-border);
+  border-color: var(--color-accent);
 }
 
 .btn-demo code {
-  color: #88c0d0;
+  color: var(--color-accent);
   font-size: 0.8rem;
 }
 
 .mensaje.error {
   margin: 0;
   padding: 8px 10px;
-  background-color: rgba(191, 97, 106, 0.2);
-  color: #d08770;
-  border: 1px solid #bf616a;
-  border-radius: 6px;
+  background-color: color-mix(in srgb, var(--color-danger) 20%, transparent);
+  color: var(--color-danger-soft);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radio-chico);
   font-size: 0.85rem;
 }
 </style>

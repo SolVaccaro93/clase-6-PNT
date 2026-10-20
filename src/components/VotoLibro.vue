@@ -68,37 +68,37 @@ function votar(tipo) {
 .btn-voto {
   min-height: 36px;
   padding: 4px 12px;
-  background-color: #2e3440;
-  border: 1px solid #4c566a;
-  color: #eceff4;
+  background-color: var(--color-surface-alt);
+  border: 1px solid var(--color-border-light);
+  color: var(--color-text);
   font-weight: 600;
 }
 
 .btn-voto:hover {
-  background-color: #3b4252;
+  background-color: var(--color-border);
 }
 
 .btn-voto.like.activo {
-  background-color: rgba(163, 190, 140, 0.25);
-  border-color: #a3be8c;
+  background-color: color-mix(in srgb, var(--color-success) 25%, transparent);
+  border-color: var(--color-success);
 }
 
 .btn-voto.dislike.activo {
-  background-color: rgba(191, 97, 106, 0.25);
-  border-color: #bf616a;
+  background-color: color-mix(in srgb, var(--color-danger) 25%, transparent);
+  border-color: var(--color-danger);
 }
 
 .neto {
   margin-left: auto;
   font-size: 0.85rem;
-  color: #d8dee9;
+  color: var(--color-text-muted);
 }
 
 .neto.positivo {
-  color: #a3be8c;
+  color: var(--color-success);
 }
 
 .neto.negativo {
-  color: #bf616a;
+  color: var(--color-danger);
 }
 </style>

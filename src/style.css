@@ -1,9 +1,67 @@
+/* =========================================================================
+   PALETA DE COLORES - tema "Biblioteca antigua"
+   Definimos los colores UNA sola vez acá como variables CSS. Después, en vez
+   de escribir el código hexadecimal en cada regla, usamos var(--nombre).
+   Para cambiar el tema de toda la app alcanza con editar estos valores.
+   ========================================================================= */
+:root {
+  color-scheme: dark;
+
+  /* --- Fondos (del más oscuro al más claro) --- */
+  --color-bg-deep: #140f1d;       /* el más oscuro: degradados */
+  --color-bg: #181221;            /* fondo de la página (violeta muy oscuro) */
+  --color-bg-nested: #1d1628;     /* cajas dentro de una tarjeta */
+  --color-surface: #241c35;       /* fondo de tarjetas y paneles */
+  --color-surface-alt: #332943;   /* chips, selects, fondos secundarios */
+
+  /* --- Bordes --- */
+  --color-border: #413455;        /* bordes */
+  --color-border-light: #574867;  /* bordes de inputs */
+  --color-border-hover: #4f4162;  /* borde al pasar el mouse */
+
+  /* --- Colores de marca --- */
+  --color-primary: #8c2f49;       /* vino: botones y acciones principales */
+  --color-primary-hover: #a83c5a; /* vino más claro: hover de los botones */
+  --color-accent: #d9a63e;        /* dorado: links y detalles */
+  --color-accent-light: #e0b65c;  /* dorado claro: hover de los acentos */
+
+  /* --- Textos (del más claro al más apagado) --- */
+  --color-text: #f1e9dd;          /* texto principal (crema) */
+  --color-text-light: #e6dced;    /* títulos secundarios */
+  --color-text-muted: #cfc3dd;    /* texto secundario */
+  --color-text-dim: #9b8caf;      /* etiquetas chiquitas */
+
+  /* --- Colores de estado (semánticos) --- */
+  --color-success: #87a35e;       /* verde oliva: disponible / éxito */
+  --color-danger: #c0394f;        /* rojo: error / agotado */
+  --color-danger-soft: #d6793f;   /* naranja: texto de los errores */
+  --color-gold: #e8c15c;          /* dorado: puntajes y estrellas */
+  --color-rose: #b06a84;          /* rosa viejo: iconos del feed */
+
+  /* =======================================================================
+     FORMAS - redondeos y sombras
+     Antes cada componente elegía su propio redondeo (4, 6, 8, 10, 20px) y
+     sus sombras, así que nada coincidía. Ahora hay una escala de 4 medidas:
+     cuanto más grande el elemento, más grande el redondeo.
+     ======================================================================= */
+  --radio-chico: 8px;             /* chips, tags, inputs, botones */
+  --radio: 14px;                  /* tarjetas y paneles */
+  --radio-grande: 24px;           /* bloques destacados (bienvenida) */
+  --radio-pill: 999px;            /* píldoras (un valor enorme = lados redondos) */
+
+  /* Sombras: dan sensación de profundidad. Cuanto más "arriba" está el
+     elemento, más grande y difusa la sombra. */
+  --sombra-chica: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --sombra: 0 8px 20px rgba(0, 0, 0, 0.35);
+  --sombra-grande: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
 body {
   margin: 0;
   padding: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background-color: #1a1d24;
-  color: #eceff4;
+  background-color: var(--color-bg);
+  color: var(--color-text);
   line-height: 1.5;
 }
 
@@ -11,28 +69,24 @@ body {
   box-sizing: border-box;
 }
 
-:root {
-  color-scheme: dark;
-}
-
 input, select, button {
   font: inherit;
   font-size: 0.95rem;
   min-height: 44px;
-  border-radius: 6px;
+  border-radius: var(--radio-chico);
 }
 
 input, select {
   min-width: 0;
   padding: 8px 10px;
-  border: 1px solid #4c566a;
-  background-color: #242936;
-  color: #eceff4;
+  border: 1px solid var(--color-border-light);
+  background-color: var(--color-surface);
+  color: var(--color-text);
 }
 
 button {
   padding: 8px 14px;
-  background-color: #5e81ac;
+  background-color: var(--color-primary);
   color: #ffffff;
   border: none;
   cursor: pointer;
@@ -40,28 +94,29 @@ button {
 }
 
 button:hover {
-  background-color: #81a1c1;
+  background-color: var(--color-primary-hover);
 }
 
 input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible {
-  outline: 2px solid #88c0d0;
+  outline: 2px solid var(--color-accent);
   outline-offset: 3px;
 }
 
 a {
-  color: #88c0d0;
+  color: var(--color-accent);
   overflow-wrap: anywhere;
 }
 
 a:hover {
-  color: #eceff4;
+  color: var(--color-text);
 }
 
 .estado {
-  background-color: #242936;
+  background-color: var(--color-surface);
   padding: 24px;
-  border-radius: 8px;
-  border: 1px solid #3b4252;
+  border-radius: var(--radio);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--sombra-chica);
   text-align: center;
 }
 

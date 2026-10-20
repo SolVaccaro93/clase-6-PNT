@@ -166,9 +166,9 @@ watch(cambiosStock, () => {
 }
 
 .acceso-denegado {
-  background-color: #242936;
-  border: 1px solid #bf616a;
-  border-radius: 10px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radio);
   padding: 36px;
   text-align: center;
   max-width: 500px;
@@ -182,24 +182,24 @@ watch(cambiosStock, () => {
 }
 
 .acceso-denegado h2 {
-  color: #bf616a;
+  color: var(--color-danger);
   margin: 0 0 10px;
 }
 
 .acceso-denegado code {
-  color: #88c0d0;
-  background-color: #1e222d;
+  color: var(--color-accent);
+  background-color: var(--color-bg-nested);
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: var(--radio-chico);
 }
 
 .btn-ir-login {
   display: inline-block;
   margin-top: 16px;
-  background-color: #5e81ac;
+  background-color: var(--color-primary);
   color: white;
   padding: 10px 18px;
-  border-radius: 6px;
+  border-radius: var(--radio-chico);
   text-decoration: none;
   font-weight: bold;
 }
@@ -220,16 +220,16 @@ watch(cambiosStock, () => {
 
 .subtitulo {
   margin: 4px 0 0;
-  color: #d8dee9;
+  color: var(--color-text-muted);
   font-size: 0.9rem;
 }
 
 .usuario-admin-tag {
-  background-color: #3b4252;
-  border: 1px solid #88c0d0;
-  color: #eceff4;
+  background-color: var(--color-border);
+  border: 1px solid var(--color-accent);
+  color: var(--color-text);
   padding: 6px 14px;
-  border-radius: 20px;
+  border-radius: var(--radio-pill);
   font-size: 0.85rem;
 }
 
@@ -240,9 +240,9 @@ watch(cambiosStock, () => {
 }
 
 .tarjeta-kpi {
-  background-color: #242936;
-  border: 1px solid #3b4252;
-  border-radius: 8px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radio);
   padding: 14px;
   display: flex;
   flex-direction: column;
@@ -253,18 +253,18 @@ watch(cambiosStock, () => {
 .kpi-num {
   font-size: 1.8rem;
   font-weight: bold;
-  color: #88c0d0;
+  color: var(--color-accent);
 }
 
 .kpi-desc {
   font-size: 0.8rem;
-  color: #d8dee9;
+  color: var(--color-text-muted);
 }
 
 .seccion-stock {
-  background-color: #242936;
-  border: 1px solid #3b4252;
-  border-radius: 8px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radio);
   padding: 18px;
 }
 
@@ -279,7 +279,7 @@ watch(cambiosStock, () => {
 
 .barra-stock-header h3 {
   margin: 0;
-  color: #88c0d0;
+  color: var(--color-accent);
   font-size: 1.15rem;
 }
 
@@ -301,19 +301,19 @@ watch(cambiosStock, () => {
 
 .tabla-stock th, .tabla-stock td {
   padding: 10px;
-  border-bottom: 1px solid #3b4252;
+  border-bottom: 1px solid var(--color-border);
   text-align: left;
 }
 
 .tabla-stock th {
-  background-color: #1e222d;
-  color: #88c0d0;
+  background-color: var(--color-bg-nested);
+  color: var(--color-accent);
   font-weight: 600;
 }
 
 .col-id {
   width: 40px;
-  color: #88c0d0;
+  color: var(--color-accent);
 }
 
 .col-titulo {
@@ -323,7 +323,7 @@ watch(cambiosStock, () => {
 .autor-dim {
   display: block;
   font-size: 0.75rem;
-  color: #d8dee9;
+  color: var(--color-text-muted);
 }
 
 .col-stock {
@@ -343,10 +343,10 @@ watch(cambiosStock, () => {
   height: 26px;
   min-height: 26px;
   padding: 0;
-  border-radius: 4px;
-  background-color: #3b4252;
+  border-radius: var(--radio-chico);
+  background-color: var(--color-border);
   color: white;
-  border: 1px solid #4c566a;
+  border: 1px solid var(--color-border-light);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -366,6 +366,6 @@ watch(cambiosStock, () => {
 }
 
 .num-stock.cero {
-  color: #bf616a;
+  color: var(--color-danger);
 }
 </style>

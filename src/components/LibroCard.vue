@@ -209,14 +209,15 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
 .card {
   min-width: 0;
   overflow-wrap: anywhere;
-  background-color: #242936;
-  border: 1px solid #3b4252;
-  border-radius: 8px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radio);
   padding: 16px;
-  color: #eceff4;
+  color: var(--color-text);
   display: flex;
   flex-direction: column;
   gap: 10px;
+  box-shadow: var(--sombra-chica);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -224,13 +225,13 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
 .portada-contenedor {
   width: 100%;
   height: 200px;
-  background: linear-gradient(180deg, #181b22 0%, #1e222d 100%);
-  border-radius: 6px;
+  background: linear-gradient(180deg, var(--color-bg-deep) 0%, var(--color-bg-nested) 100%);
+  border-radius: var(--radio-chico);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border: 1px solid #2e3440;
+  border: 1px solid var(--color-surface-alt);
   position: relative;
 }
 
@@ -240,8 +241,8 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
   width: auto;
   height: auto;
   object-fit: contain;
-  border-radius: 4px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  border-radius: var(--radio-chico);
+  box-shadow: var(--sombra);
   transition: transform 0.25s ease;
 }
 
@@ -254,15 +255,15 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
   height: 290px;
   max-width: 220px;
   margin: 0 auto 6px auto;
-  background: linear-gradient(180deg, #181b22 0%, #242936 100%);
-  border: 1px solid #3b4252;
+  background: linear-gradient(180deg, var(--color-bg-deep) 0%, var(--color-surface) 100%);
+  border: 1px solid var(--color-border);
   box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.35);
 }
 
 .portada-contenedor.portada-detalle .portada-img {
   max-height: 270px;
   max-width: 190px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--sombra-grande);
 }
 
 .portada-fallback {
@@ -275,7 +276,7 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
   text-align: center;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #1f2430 0%, #2e3440 100%);
+  background: linear-gradient(135deg, var(--color-bg-nested) 0%, var(--color-surface-alt) 100%);
 }
 
 .fallback-icono {
@@ -286,7 +287,7 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
 .fallback-titulo {
   font-size: 0.82rem;
   font-weight: 600;
-  color: #e5e9f0;
+  color: var(--color-text-light);
   line-height: 1.25;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -296,15 +297,15 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
 
 .fallback-autor {
   font-size: 0.72rem;
-  color: #88c0d0;
+  color: var(--color-accent);
 }
 
 .genero {
   font-size: 0.75rem;
-  background-color: #3b4252;
-  color: #88c0d0;
+  background-color: var(--color-border);
+  color: var(--color-accent);
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: var(--radio-chico);
   align-self: flex-start;
 }
 
@@ -316,15 +317,15 @@ h2 {
 
 .autor {
   margin: 0;
-  color: #d8dee9;
+  color: var(--color-text-muted);
   font-size: 0.9rem;
 }
 
 .disponibilidad {
   margin-top: auto;
-  background-color: #1e222d;
+  background-color: var(--color-bg-nested);
   padding: 10px;
-  border-radius: 6px;
+  border-radius: var(--radio-chico);
   font-size: 0.85rem;
 }
 
@@ -338,12 +339,12 @@ h2 {
 }
 
 .con-stock {
-  color: #a3be8c;
+  color: var(--color-success);
   font-weight: bold;
 }
 
 .sin-stock {
-  color: #bf616a;
+  color: var(--color-danger);
 }
 
 .acciones {
@@ -365,7 +366,7 @@ h2 {
 
 select {
   width: 100%;
-  background-color: #2e3440;
+  background-color: var(--color-surface-alt);
 }
 
 .acciones button {
@@ -375,20 +376,20 @@ select {
 .mensaje {
   margin: 0;
   padding: 8px 10px;
-  border-radius: 6px;
+  border-radius: var(--radio-chico);
   font-size: 0.85rem;
 }
 
 .exito {
-  background-color: rgba(163, 190, 140, 0.2);
-  color: #a3be8c;
-  border: 1px solid #a3be8c;
+  background-color: color-mix(in srgb, var(--color-success) 20%, transparent);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
 }
 
 .error {
-  background-color: rgba(191, 97, 106, 0.2);
-  color: #d08770;
-  border: 1px solid #bf616a;
+  background-color: color-mix(in srgb, var(--color-danger) 20%, transparent);
+  color: var(--color-danger-soft);
+  border: 1px solid var(--color-danger);
 }
 
 /* Metadatos rápidos en el catálogo */
@@ -404,30 +405,30 @@ select {
   align-items: center;
   font-size: 0.74rem;
   padding: 3px 8px;
-  border-radius: 4px;
-  background-color: #2e3440;
-  border: 1px solid #434c5e;
-  color: #eceff4;
+  border-radius: var(--radio-chico);
+  background-color: var(--color-surface-alt);
+  border: 1px solid var(--color-border-hover);
+  color: var(--color-text);
   font-weight: 500;
 }
 
 .chip-puntaje {
-  background-color: rgba(235, 203, 139, 0.15);
-  border-color: rgba(235, 203, 139, 0.4);
-  color: #ebcb8b;
+  background-color: color-mix(in srgb, var(--color-gold) 15%, transparent);
+  border-color: color-mix(in srgb, var(--color-gold) 40%, transparent);
+  color: var(--color-gold);
   font-weight: 600;
 }
 
 .chip-paginas {
-  background-color: rgba(136, 192, 208, 0.12);
-  border-color: rgba(136, 192, 208, 0.3);
-  color: #88c0d0;
+  background-color: color-mix(in srgb, var(--color-rose) 15%, transparent);
+  border-color: color-mix(in srgb, var(--color-rose) 38%, transparent);
+  color: var(--color-rose);
 }
 
 .chip-anio {
-  background-color: rgba(129, 161, 193, 0.12);
-  border-color: rgba(129, 161, 193, 0.3);
-  color: #81a1c1;
+  background-color: color-mix(in srgb, var(--color-text-dim) 15%, transparent);
+  border-color: color-mix(in srgb, var(--color-text-dim) 35%, transparent);
+  color: var(--color-text-muted);
 }
 
 .meta-sub {
@@ -438,9 +439,9 @@ select {
 
 /* Ficha Técnica completa en Vista Detalle */
 .ficha-tecnica {
-  background: #1e222d;
-  border: 1px solid #3b4252;
-  border-radius: 8px;
+  background: var(--color-bg-nested);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radio);
   padding: 14px;
   margin: 8px 0;
 }
@@ -448,10 +449,10 @@ select {
 .ficha-titulo {
   margin: 0 0 10px 0;
   font-size: 0.95rem;
-  color: #88c0d0;
+  color: var(--color-accent);
   font-weight: 700;
   letter-spacing: 0.3px;
-  border-bottom: 1px solid #2e3440;
+  border-bottom: 1px solid var(--color-surface-alt);
   padding-bottom: 6px;
 }
 
@@ -462,9 +463,9 @@ select {
 }
 
 .ficha-item {
-  background: #242936;
-  border: 1px solid #2e3440;
-  border-radius: 6px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-alt);
+  border-radius: var(--radio-chico);
   padding: 8px 10px;
   display: flex;
   flex-direction: column;
@@ -473,7 +474,7 @@ select {
 
 .ficha-label {
   font-size: 0.68rem;
-  color: #94a3b8;
+  color: var(--color-text-dim);
   text-transform: uppercase;
   font-weight: 600;
   letter-spacing: 0.4px;
@@ -481,12 +482,12 @@ select {
 
 .ficha-valor {
   font-size: 0.88rem;
-  color: #eceff4;
+  color: var(--color-text);
   font-weight: 600;
 }
 
 .valor-puntaje {
-  color: #ebcb8b;
+  color: var(--color-gold);
   display: flex;
   align-items: baseline;
   gap: 4px;
@@ -494,7 +495,7 @@ select {
 
 .criticas-count {
   font-size: 0.7rem;
-  color: #94a3b8;
+  color: var(--color-text-dim);
   font-weight: normal;
 }
 </style>

@@ -2,17 +2,17 @@
   <section class="bienvenida" aria-labelledby="titulo-inicio">
     <div class="bienvenida-ilustracion" aria-hidden="true">
       <svg viewBox="0 0 240 150" fill="none">
-        <circle cx="120" cy="75" r="68" fill="#242936" />
-        <circle cx="183" cy="31" r="4" fill="#88c0d0" />
-        <path d="M48 42h12m-6-6v12M189 100h10m-5-5v10" stroke="#81a1c1" stroke-width="2" stroke-linecap="round" />
-        <rect x="54" y="112" width="132" height="9" rx="4.5" fill="#3b4252" />
-        <rect x="65" y="55" width="25" height="57" rx="4" fill="#5e81ac" />
-        <path d="M72 66h11M72 101h11" stroke="#eceff4" stroke-width="2" stroke-linecap="round" />
-        <rect x="94" y="41" width="29" height="71" rx="4" fill="#88c0d0" />
-        <path d="M102 52h13M102 58h13M102 101h13" stroke="#242936" stroke-width="2" stroke-linecap="round" />
+        <circle cx="120" cy="75" r="68" fill="var(--color-surface)" />
+        <circle cx="183" cy="31" r="4" fill="var(--color-accent)" />
+        <path d="M48 42h12m-6-6v12M189 100h10m-5-5v10" stroke="var(--color-accent-light)" stroke-width="2" stroke-linecap="round" />
+        <rect x="54" y="112" width="132" height="9" rx="4.5" fill="var(--color-border)" />
+        <rect x="65" y="55" width="25" height="57" rx="4" fill="var(--color-primary)" />
+        <path d="M72 66h11M72 101h11" stroke="var(--color-text)" stroke-width="2" stroke-linecap="round" />
+        <rect x="94" y="41" width="29" height="71" rx="4" fill="var(--color-accent)" />
+        <path d="M102 52h13M102 58h13M102 101h13" stroke="var(--color-surface)" stroke-width="2" stroke-linecap="round" />
         <g transform="rotate(-12 143 112)">
-          <rect x="133" y="59" width="27" height="53" rx="4" fill="#81a1c1" />
-          <path d="M140 70h13M140 101h13" stroke="#242936" stroke-width="2" stroke-linecap="round" />
+          <rect x="133" y="59" width="27" height="53" rx="4" fill="var(--color-accent-light)" />
+          <path d="M140 70h13M140 101h13" stroke="var(--color-surface)" stroke-width="2" stroke-linecap="round" />
         </g>
       </svg>
     </div>
@@ -34,10 +34,10 @@
   position: relative;
   overflow: hidden;
   padding: clamp(32px, 6vw, 56px) clamp(20px, 5vw, 48px);
-  border: 1px solid #4c566a;
-  border-radius: 20px;
-  background: radial-gradient(ellipse at 50% 0%, #3b4252 0%, #242936 65%);
-  box-shadow: 0 16px 40px #1a1d2466;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radio-grande);
+  background: radial-gradient(ellipse at 50% 0%, var(--color-border) 0%, var(--color-surface) 65%);
+  box-shadow: var(--sombra-grande);
   text-align: center;
 }
 
@@ -46,7 +46,7 @@
   position: absolute;
   inset: 0 15% auto;
   height: 3px;
-  background: linear-gradient(90deg, transparent, #88c0d0, transparent);
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
 }
 
 .bienvenida-ilustracion {
@@ -63,7 +63,7 @@
 
 .bienvenida h2 {
   margin: 0;
-  color: #eceff4;
+  color: var(--color-text);
   font-size: clamp(1.9rem, 5vw, 3rem);
   font-weight: 750;
   line-height: 1.15;
@@ -72,13 +72,13 @@
 }
 
 .bienvenida h2 span {
-  color: #88c0d0;
+  color: var(--color-accent);
 }
 
 .bienvenida-descripcion {
   max-width: 490px;
   margin: 20px auto 28px;
-  color: #d8dee9;
+  color: var(--color-text-muted);
   font-size: 1.05rem;
   line-height: 1.75;
   text-wrap: pretty;
@@ -91,21 +91,21 @@
   gap: 16px;
   min-height: 48px;
   padding: 12px 22px;
-  border: 1px solid #81a1c1;
-  border-radius: 10px;
-  background-color: #5e81ac;
+  border: 1px solid var(--color-accent-light);
+  border-radius: var(--radio);
+  background-color: var(--color-primary);
   color: #ffffff;
   font-weight: 650;
   text-decoration: none;
-  box-shadow: 0 6px 18px #1a1d2466;
+  box-shadow: var(--sombra-chica);
   transition: background-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
 }
 
 .bienvenida-enlace:hover {
-  background-color: #81a1c1;
-  color: #1a1d24;
+  background-color: var(--color-primary-hover);
+  color: #ffffff;
   transform: translateY(-2px);
-  box-shadow: 0 10px 22px #1a1d2466;
+  box-shadow: var(--sombra);
 }
 
 .bienvenida-enlace span {
@@ -119,14 +119,14 @@
   justify-content: center;
   gap: 12px;
   margin-top: 36px;
-  color: #d8dee9;
+  color: var(--color-text-muted);
   font-size: 0.8rem;
 }
 
 .bienvenida-pie span {
   width: 32px;
   height: 1px;
-  background-color: #4c566a;
+  background-color: var(--color-border-light);
 }
 
 @media (max-width: 480px) {

@@ -44,8 +44,8 @@ function devolver(prestamo) {
 
 <style scoped>
 .prestamos { list-style: none; padding: 0; display: grid; gap: 16px; }
-.prestamos li { background: #242936; border: 1px solid #3b4252; border-radius: 8px; padding: 16px; }
+.prestamos li { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radio); padding: 16px; }
 h3 { margin-top: 0; }
-.vencimiento { font-weight: bold; color: #a3be8c; }
-.vencimiento.atrasado { color: #bf616a; }
+.vencimiento { font-weight: bold; color: var(--color-success); }
+.vencimiento.atrasado { color: var(--color-danger); }
 </style>

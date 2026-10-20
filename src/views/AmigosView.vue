@@ -202,7 +202,7 @@ watch([() => usuario.value?.usuario, cambiosPrestamos], cargarAmigos, { immediat
 .aro {
   padding: 3px;
   border-radius: 50%;
-  background: #4c566a;
+  background: var(--color-border-light);
 }
 
 .aro.leyendo {
@@ -213,8 +213,8 @@ watch([() => usuario.value?.usuario, cambiosPrestamos], cargarAmigos, { immediat
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  border: 3px solid #1a1d24;
-  background-color: #5e81ac;
+  border: 3px solid var(--color-bg);
+  background-color: var(--color-primary);
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -229,12 +229,12 @@ watch([() => usuario.value?.usuario, cambiosPrestamos], cargarAmigos, { immediat
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.75rem;
-  color: #d8dee9;
+  color: var(--color-text-muted);
 }
 
 .pestanas {
   display: flex;
-  border-bottom: 1px solid #3b4252;
+  border-bottom: 1px solid var(--color-border);
   margin-bottom: 20px;
 }
 
@@ -243,17 +243,17 @@ watch([() => usuario.value?.usuario, cambiosPrestamos], cargarAmigos, { immediat
   background: none;
   border-radius: 0;
   border-bottom: 2px solid transparent;
-  color: #d8dee9;
+  color: var(--color-text-muted);
   font-weight: 600;
 }
 
 .btn-pestana:hover {
-  background-color: #242936;
+  background-color: var(--color-surface);
 }
 
 .btn-pestana.activo {
   color: #ffffff;
-  border-bottom-color: #88c0d0;
+  border-bottom-color: var(--color-accent);
 }
 
 .filtros {
@@ -266,15 +266,15 @@ watch([() => usuario.value?.usuario, cambiosPrestamos], cargarAmigos, { immediat
 .btn-filtro {
   min-height: 36px;
   padding: 4px 14px;
-  background-color: #2e3440;
-  border: 1px solid #4c566a;
-  color: #d8dee9;
+  background-color: var(--color-surface-alt);
+  border: 1px solid var(--color-border-light);
+  color: var(--color-text-muted);
   font-weight: 500;
 }
 
 .btn-filtro.activo {
-  background-color: #3b4252;
-  border-color: #88c0d0;
+  background-color: var(--color-border);
+  border-color: var(--color-accent);
   color: #ffffff;
 }
 
@@ -288,9 +288,10 @@ watch([() => usuario.value?.usuario, cambiosPrestamos], cargarAmigos, { immediat
 }
 
 .card-amigo {
-  background-color: #242936;
-  border: 1px solid #3b4252;
-  border-radius: 8px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-chica);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -309,7 +310,7 @@ watch([() => usuario.value?.usuario, cambiosPrestamos], cargarAmigos, { immediat
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background-color: #5e81ac;
+  background-color: var(--color-primary);
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -324,8 +325,8 @@ watch([() => usuario.value?.usuario, cambiosPrestamos], cargarAmigos, { immediat
 }
 
 .bloque {
-  background-color: #1e222d;
-  border-radius: 6px;
+  background-color: var(--color-bg-nested);
+  border-radius: var(--radio-chico);
   padding: 10px;
 }
 
@@ -335,11 +336,11 @@ watch([() => usuario.value?.usuario, cambiosPrestamos], cargarAmigos, { immediat
 }
 
 .etiqueta.leyendo {
-  color: #ebcb8b;
+  color: var(--color-gold);
 }
 
 .etiqueta.terminado {
-  color: #a3be8c;
+  color: var(--color-success);
 }
 
 .lecturas {
@@ -354,12 +355,12 @@ watch([() => usuario.value?.usuario, cambiosPrestamos], cargarAmigos, { immediat
 .meta {
   display: block;
   font-size: 0.8rem;
-  color: #d8dee9;
+  color: var(--color-text-muted);
 }
 
 .vacio {
   margin: 0;
   font-size: 0.85rem;
-  color: #d8dee9;
+  color: var(--color-text-muted);
 }
 </style>

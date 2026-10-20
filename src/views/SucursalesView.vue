@@ -53,7 +53,7 @@ onMounted(cargar);
 
 <style scoped>
 .intro {
-  color: #d8dee9;
+  color: var(--color-text-muted);
   margin-top: 0;
 }
 
@@ -70,12 +70,12 @@ onMounted(cargar);
   display: flex;
   flex-direction: column;
   gap: 2px;
-  background-color: #242936;
-  border: 1px solid #3b4252;
-  border-radius: 8px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radio);
   padding: 12px 14px;
   font-size: 0.9rem;
-  color: #d8dee9;
+  color: var(--color-text-muted);
 }
 
 .lista-sucursales strong {
@@ -83,6 +83,6 @@ onMounted(cargar);
 }
 
 .cantidad {
-  color: #88c0d0;
+  color: var(--color-accent);
 }
 </style>

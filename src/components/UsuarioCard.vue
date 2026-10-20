@@ -16,8 +16,8 @@ defineProps({
 
 <style scoped>
 .usuario-card {
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radio);
   padding: 12px;
   margin-bottom: 8px;
 }

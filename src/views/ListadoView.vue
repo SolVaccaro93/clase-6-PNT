@@ -121,7 +121,7 @@ onMounted(() => {
   gap: 6px;
   min-width: 0;
   font-size: 0.9rem;
-  color: #d8dee9;
+  color: var(--color-text-muted);
 }
 
 .campo-busqueda {
@@ -143,7 +143,7 @@ onMounted(() => {
 }
 
 p {
-  color: #d8dee9;
+  color: var(--color-text-muted);
 }
 
 @media (max-width: 600px) {

@@ -18,8 +18,8 @@ const contenedor = ref(null);
 let mapa = null;
 let marcadores = [];
 
-const COLOR_CON_STOCK = "#a3be8c";
-const COLOR_SIN_STOCK = "#bf616a";
+const COLOR_CON_STOCK = "var(--color-success)";
+const COLOR_SIN_STOCK = "var(--color-danger)";
 const MAX_LIBROS_POPUP = 5;
 
 // Los títulos vienen de la API: se escapan antes de meterlos en el HTML del popup.
@@ -122,8 +122,8 @@ onBeforeUnmount(() => {
 <style scoped>
 .mapa {
   height: 360px;
-  border-radius: 8px;
-  border: 1px solid #3b4252;
+  border-radius: var(--radio);
+  border: 1px solid var(--color-border);
   z-index: 0;
 }
 
@@ -133,7 +133,7 @@ onBeforeUnmount(() => {
   gap: 6px;
   margin: 8px 0 0;
   font-size: 0.85rem;
-  color: #d8dee9;
+  color: var(--color-text-muted);
 }
 
 .punto {
@@ -148,11 +148,11 @@ onBeforeUnmount(() => {
 }
 
 .con-stock {
-  background-color: #a3be8c;
+  background-color: var(--color-success);
 }
 
 .sin-stock {
-  background-color: #bf616a;
+  background-color: var(--color-danger);
 }
 
 /* El popup lo genera Leaflet fuera del scope del componente */
