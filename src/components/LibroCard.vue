@@ -15,6 +15,7 @@ const route = useRoute();
 
 // Variables reactivas
 const disponibilidad = ref([]);
+const sucursalesConStock = computed(() => disponibilidad.value.filter(item => item.cantidad > 0));
 const sucursalSeleccionada = ref("");
 const mensajeExito = ref("");
 const mensajeError = ref("");
@@ -38,6 +39,9 @@ watch(() => props.libro?.id, () => {
 function cargarDisponibilidad() {
   try {
     disponibilidad.value = BibliotecaService.consultarDisponibilidad(props.libro.id);
+    if (!sucursalesConStock.value.some(item => item.sucursal.id === Number(sucursalSeleccionada.value))) {
+      sucursalSeleccionada.value = "";
+    }
   } catch (error) {
     mensajeError.value = "Error al consultar disponibilidad.";
   }
@@ -183,20 +187,19 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
     <div v-else class="acciones">
       <label class="campo-sucursal">
         <span>Sucursal</span>
-        <select v-model="sucursalSeleccionada">
-          <option value="" disabled>Elegir sucursal...</option>
+        <select v-model="sucursalSeleccionada" :disabled="sucursalesConStock.length === 0">
+          <option value="" disabled>{{ sucursalesConStock.length ? 'Elegir sucursal...' : 'Sin sucursales con stock' }}</option>
           <option
-            v-for="item in disponibilidad"
+            v-for="item in sucursalesConStock"
             :key="item.sucursal.id"
             :value="item.sucursal.id"
-            :disabled="item.cantidad === 0"
           >
             {{ item.sucursal.nombre }}
           </option>
         </select>
       </label>
 
-      <button @click="solicitar">Retirar libro</button>
+      <button :disabled="sucursalesConStock.length === 0" @click="solicitar">Retirar libro</button>
     </div>
 
     <!-- Mensajes al usuario -->
