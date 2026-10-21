@@ -3,7 +3,6 @@ import { ref, computed, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { BibliotecaService, cambiosStock } from "../services/bibliotecaService.js";
 import { AuthService } from "../services/authService.js";
-import VotoLibro from "./VotoLibro.vue";
 
 const props = defineProps({
   libro: Object,
@@ -161,7 +160,6 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
       </div>
     </div>
 
-    <VotoLibro :libro="libro" />
     <RouterLink v-if="mostrarDetalle" :to="{ name: 'detalle', params: { id: libro.id } }">
       Ver detalle<span class="sr-only"> de {{ libro.titulo }}</span> →
     </RouterLink>
