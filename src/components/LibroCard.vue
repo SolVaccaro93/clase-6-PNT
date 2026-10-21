@@ -221,7 +221,15 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
   flex-direction: column;
   gap: 10px;
   box-shadow: var(--sombra-chica);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform var(--transicion), box-shadow var(--transicion),
+              border-color var(--transicion);
+}
+
+/* La tarjeta se levanta, proyecta más sombra y se le ilumina el borde */
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--sombra);
+  border-color: var(--color-accent);
 }
 
 /* Portada del libro (preview y detalle) */
@@ -246,7 +254,7 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
   object-fit: contain;
   border-radius: var(--radio-chico);
   box-shadow: var(--sombra);
-  transition: transform 0.25s ease;
+  transition: transform var(--transicion);
 }
 
 .card:hover .portada-img {

@@ -1,5 +1,16 @@
+<script setup>
+import Telarana from "../components/Telarana.vue";
+</script>
+
 <template>
   <section class="bienvenida" aria-labelledby="titulo-inicio">
+    <!-- Telarañas en las dos esquinas de arriba (mismo componente, espejado) -->
+    <Telarana class="telarana-hero telarana-izq" />
+    <Telarana class="telarana-hero telarana-der" />
+
+    <!-- Fantasma que flota junto a la ilustración -->
+    <span class="fantasma" aria-hidden="true">👻</span>
+
     <div class="bienvenida-ilustracion" aria-hidden="true">
       <svg viewBox="0 0 240 150" fill="none">
         <circle cx="120" cy="75" r="68" fill="var(--color-surface)" />
@@ -16,15 +27,16 @@
         </g>
       </svg>
     </div>
-    <h2 id="titulo-inicio">Bienvenido a <span>la biblioteca</span></h2>
+    <h2 id="titulo-inicio">Bienvenido a <span>la biblioteca embrujada</span></h2>
     <p class="bienvenida-descripcion">
-      Explorá el catálogo, encontrá tu próxima lectura y solicitá un ejemplar en tu sucursal.
+      Animate a entrar al catálogo, encontrá tu próxima lectura de terror y
+      retirá tu ejemplar antes de que suene la medianoche.
     </p>
     <RouterLink class="bienvenida-enlace" :to="{ name: 'listado' }">
       Ver catálogo de libros <span aria-hidden="true">→</span>
     </RouterLink>
     <div class="bienvenida-pie" aria-hidden="true">
-      <span></span> Tu próxima historia empieza acá <span></span>
+      <span></span> 🕯️ Tu próxima historia empieza acá 🕯️ <span></span>
     </div>
   </section>
 </template>
@@ -47,6 +59,59 @@
   inset: 0 15% auto;
   height: 3px;
   background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+}
+
+/* --- Decoración de Halloween --- */
+
+/* Telarañas del bloque de bienvenida (componente Telarana.vue).
+   El componente solo dibuja la figura; acá le damos posición, tamaño y color. */
+.telarana-hero {
+  position: absolute;
+  top: 0;
+  width: 92px;
+  height: 92px;
+  color: var(--color-border-light);
+  opacity: 0.6;
+}
+
+.telarana-izq {
+  left: 0;
+}
+
+/* La de la derecha es la misma figura espejada horizontalmente */
+.telarana-der {
+  right: 0;
+  transform: scaleX(-1);
+}
+
+/* El fantasma sube y baja despacio, y se desvanece un poco en el camino */
+.fantasma {
+  position: absolute;
+  top: 18%;
+  right: 12%;
+  font-size: 2rem;
+  opacity: 0.85;
+  pointer-events: none;
+  animation: flotar 4s ease-in-out infinite;
+}
+
+@keyframes flotar {
+  0%, 100% { transform: translateY(0); opacity: 0.85; }
+  50%      { transform: translateY(-14px); opacity: 0.45; }
+}
+
+@media (max-width: 600px) {
+  .telarana-hero {
+    width: 64px;
+    height: 64px;
+  }
+
+  /* En pantallas chicas el fantasma tapaba la ilustración */
+  .fantasma {
+    font-size: 1.5rem;
+    top: 10%;
+    right: 6%;
+  }
 }
 
 .bienvenida-ilustracion {
@@ -98,7 +163,8 @@
   font-weight: 650;
   text-decoration: none;
   box-shadow: var(--sombra-chica);
-  transition: background-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+  transition: background-color var(--transicion), transform var(--transicion),
+              box-shadow var(--transicion);
 }
 
 .bienvenida-enlace:hover {
@@ -148,13 +214,6 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .bienvenida-enlace {
-    transition: none;
-  }
-
-  .bienvenida-enlace:hover {
-    transform: none;
-  }
-}
+/* El bloque de prefers-reduced-motion que estaba acá se movió a style.css,
+   donde ahora anula las animaciones de toda la app de una sola vez. */
 </style>

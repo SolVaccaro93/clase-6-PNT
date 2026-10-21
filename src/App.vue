@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { AuthService } from "./services/authService.js";
+import Telarana from "./components/Telarana.vue";
 
 const router = useRouter();
 
@@ -17,11 +18,21 @@ function cerrarSesion() {
 
 <template>
   <div class="contenedor">
+    <!-- Telaraña fija en la esquina superior izquierda de la página -->
+    <Telarana class="telarana-pagina" />
+
     <header class="encabezado">
       <div class="barra-superior">
-        <div>
-          <h1>📚 Catálogo de Biblioteca</h1>
-          <p>Buscá libros y consultá su disponibilidad por sucursal.</p>
+        <div class="titulo-area">
+          <h1>
+            <span class="titulo-emoji" aria-hidden="true">🎃</span>
+            La Biblioteca <span class="titulo-destacado">Embrujada</span>
+          </h1>
+          <p>Buscá libros, mirá qué hechizos hay disponibles y retiralos en tu sucursal.</p>
+
+          <!-- Murciélagos decorativos del encabezado -->
+          <span class="murcielago murcielago-1" aria-hidden="true">🦇</span>
+          <span class="murcielago murcielago-2" aria-hidden="true">🦇</span>
         </div>
 
         <!-- Requerimiento: Autenticación y Sesión de usuario - Matías -->
@@ -68,10 +79,36 @@ function cerrarSesion() {
 </template>
 
 <style scoped>
+/* El contenido ocupa todo el ancho de la pantalla.
+   El padding crece con el viewport (clamp: mínimo 16px, 3% del ancho,
+   máximo 48px) para que en pantallas grandes no quede pegado a los bordes. */
 .contenedor {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 24px 16px;
+  width: 100%;
+  padding: 24px clamp(16px, 3vw, 48px);
+}
+
+/* Telaraña de la esquina de la página.
+   'fixed' la clava en la ventana: no se mueve al hacer scroll.
+   'z-index: -1' la manda detrás del contenido, así nunca tapa el título
+   (queda por delante de la niebla del body, que también está en -1, porque
+   en caso de empate se pinta primero lo que aparece antes en el documento). */
+.telarana-pagina {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 150px;
+  height: 150px;
+  color: var(--color-border-light);
+  opacity: 0.55;
+  z-index: -1;
+}
+
+/* En pantallas chicas se achica, para no comerse el título */
+@media (max-width: 600px) {
+  .telarana-pagina {
+    width: 90px;
+    height: 90px;
+  }
 }
 
 .encabezado {
@@ -91,11 +128,64 @@ function cerrarSesion() {
   gap: 16px;
 }
 
+/* El contenedor del título es "relative" para poder ubicar los murciélagos
+   encima con position: absolute */
+.titulo-area {
+  position: relative;
+}
+
 h1 {
   color: #ffffff;
   margin: 0 0 6px;
   font-size: clamp(1.5rem, 4vw, 2rem);
   line-height: 1.2;
+}
+
+/* "Embrujada" en naranja calabaza con un resplandor detrás */
+.titulo-destacado {
+  color: var(--color-accent);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--color-accent) 60%, transparent);
+}
+
+/* La calabaza late suavemente, como una vela adentro */
+.titulo-emoji {
+  display: inline-block;
+  animation: latir 2.5s ease-in-out infinite;
+}
+
+@keyframes latir {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.12); }
+}
+
+/* Murciélagos: revolotean arriba a la derecha del título */
+.murcielago {
+  position: absolute;
+  top: -6px;
+  font-size: 1rem;
+  opacity: 0.75;
+  pointer-events: none;      /* decorativos: no deben molestar al mouse */
+  animation: revolotear 7s ease-in-out infinite;
+}
+
+.murcielago-1 {
+  left: 62%;
+}
+
+/* El segundo arranca más tarde y tarda distinto, así no vuelan sincronizados */
+.murcielago-2 {
+  left: 78%;
+  font-size: 0.8rem;
+  animation-duration: 9s;
+  animation-delay: -3s;
+}
+
+@keyframes revolotear {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  25%  { transform: translate(14px, -10px) rotate(8deg); }
+  50%  { transform: translate(4px, 6px) rotate(-6deg); }
+  75%  { transform: translate(-12px, -4px) rotate(5deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
 }
 
 .barra-superior p {

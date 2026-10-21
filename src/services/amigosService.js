@@ -11,7 +11,7 @@ import { BibliotecaService } from "./bibliotecaService.js";
 const USUARIOS = [
   { id_usuario: "lector", nombre: "Sol Vaccaro" },
   { id_usuario: "admin", nombre: "Matías Gratz" },
-  { id_usuario: "pato", nombre: "Patricio" },
+  { id_usuario: "pato", nombre: "Patricio Araquistain" },
   { id_usuario: "valen", nombre: "Valentín" },
   { id_usuario: "lucia", nombre: "Lucía Fernández" }
 ];
@@ -22,7 +22,8 @@ const AMISTADES = [
   { id_amistad: 3, id_usuario_solicita: "lector", id_usuario_amigo: "admin", estado: "aceptada" },
   { id_amistad: 4, id_usuario_solicita: "lucia", id_usuario_amigo: "lector", estado: "pendiente" },
   { id_amistad: 5, id_usuario_solicita: "admin", id_usuario_amigo: "lucia", estado: "aceptada" },
-  { id_amistad: 6, id_usuario_solicita: "admin", id_usuario_amigo: "valen", estado: "aceptada" }
+  { id_amistad: 6, id_usuario_solicita: "admin", id_usuario_amigo: "valen", estado: "aceptada" },
+  { id_amistad: 7, id_usuario_solicita: "admin", id_usuario_amigo: "pato", estado: "aceptada" }
 ];
 
 const LECTURAS = [

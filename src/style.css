@@ -20,10 +20,13 @@
   --color-border-hover: #4f4162;  /* borde al pasar el mouse */
 
   /* --- Colores de marca --- */
+  /* Tema Halloween: el acento pasó de dorado a naranja calabaza.
+     Para volver al tema "Biblioteca antigua" alcanza con poner
+     --color-accent: #d9a63e y --color-accent-light: #e0b65c */
   --color-primary: #8c2f49;       /* vino: botones y acciones principales */
   --color-primary-hover: #a83c5a; /* vino más claro: hover de los botones */
-  --color-accent: #d9a63e;        /* dorado: links y detalles */
-  --color-accent-light: #e0b65c;  /* dorado claro: hover de los acentos */
+  --color-accent: #ff8c2b;        /* naranja calabaza: links y detalles */
+  --color-accent-light: #ffa857;  /* naranja claro: hover de los acentos */
 
   /* --- Textos (del más claro al más apagado) --- */
   --color-text: #f1e9dd;          /* texto principal (crema) */
@@ -54,6 +57,14 @@
   --sombra-chica: 0 2px 8px rgba(0, 0, 0, 0.25);
   --sombra: 0 8px 20px rgba(0, 0, 0, 0.35);
   --sombra-grande: 0 16px 40px rgba(0, 0, 0, 0.45);
+
+  /* =======================================================================
+     MOVIMIENTO - transiciones
+     Una transición hace que el cambio de estilo ocurra de forma gradual en
+     vez de de golpe. Dos duraciones alcanzan para toda la app:
+     ======================================================================= */
+  --transicion-rapida: 120ms ease;  /* color de links y textos */
+  --transicion: 200ms ease;         /* botones, tarjetas, sombras */
 }
 
 body {
@@ -63,6 +74,33 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text);
   line-height: 1.5;
+}
+
+/* =========================================================================
+   AMBIENTE HALLOWEEN: niebla y luna
+   Dos degradados fijos detrás de todo el contenido. Van en ::before del body
+   con position: fixed, así no se mueven al hacer scroll y no afectan al
+   layout. z-index negativo = quedan por detrás de todo.
+   ========================================================================= */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    /* resplandor naranja arriba a la derecha: la "luna" */
+    radial-gradient(
+      circle at 88% 4%,
+      color-mix(in srgb, var(--color-accent) 22%, transparent) 0%,
+      transparent 38%
+    ),
+    /* niebla violeta que sube desde abajo */
+    radial-gradient(
+      ellipse at 50% 100%,
+      color-mix(in srgb, var(--color-primary) 18%, transparent) 0%,
+      transparent 55%
+    );
 }
 
 * {
@@ -82,6 +120,17 @@ input, select {
   border: 1px solid var(--color-border-light);
   background-color: var(--color-surface);
   color: var(--color-text);
+  transition: border-color var(--transicion), box-shadow var(--transicion);
+}
+
+/* El input "se enciende" cuando el mouse pasa o cuando está en foco */
+input:hover, select:hover {
+  border-color: var(--color-border-hover);
+}
+
+input:focus, select:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 25%, transparent);
 }
 
 button {
@@ -91,10 +140,21 @@ button {
   border: none;
   cursor: pointer;
   font-weight: bold;
+  transition: background-color var(--transicion), transform var(--transicion),
+              box-shadow var(--transicion);
 }
 
+/* Al pasar el mouse el botón se aclara, se levanta 1px y proyecta sombra */
 button:hover {
   background-color: var(--color-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--sombra-chica);
+}
+
+/* Al hacer clic vuelve a su lugar: da la sensación de que se aprieta */
+button:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible {
@@ -105,10 +165,11 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
 a {
   color: var(--color-accent);
   overflow-wrap: anywhere;
+  transition: color var(--transicion-rapida);
 }
 
 a:hover {
-  color: var(--color-text);
+  color: var(--color-accent-light);
 }
 
 .estado {
@@ -132,4 +193,24 @@ a:hover {
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/* =========================================================================
+   ACCESIBILIDAD: respetar a quien no quiere animaciones
+   Si la persona desactivó las animaciones en su sistema operativo, el
+   navegador lo informa con prefers-reduced-motion y acá las anulamos todas
+   de una sola vez (en vez de tener que acordarse en cada componente).
+   Los cambios de color siguen funcionando: lo que se corta es el movimiento.
+   ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  *:hover {
+    transform: none !important;
+  }
 }
