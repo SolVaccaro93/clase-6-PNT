@@ -1,17 +1,18 @@
 <script setup>
 import { computed } from "vue";
 import { useRouter } from "vue-router";
-import { AuthService } from "./services/authService.js";
+import { useAuthStore } from "./stores/authStore.js";
 import Telarana from "./components/Telarana.vue";
 
 const router = useRouter();
+const authStore = useAuthStore();
 
-// Leemos el usuario reactivo y el rol del AuthService
-const usuario = computed(() => AuthService.usuario);
-const esAdmin = computed(() => AuthService.esAdmin());
+// Leemos el usuario reactivo y el rol desde el store de autenticación (Pinia)
+const usuario = computed(() => authStore.usuario);
+const esAdmin = computed(() => authStore.esAdmin); // getter: sin paréntesis
 
 function cerrarSesion() {
-  AuthService.logout();
+  authStore.logout();
   router.push({ name: "inicio" });
 }
 </script>

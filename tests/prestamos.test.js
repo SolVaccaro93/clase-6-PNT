@@ -1,3 +1,4 @@
+import { setActivePinia, createPinia } from "pinia";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
@@ -12,13 +13,15 @@ test("retiro y devolución mantienen stock, usuario, estados y persistencia", as
     { key: "/works/A", title: "Libro A" },
     { key: "/works/B", title: "Libro B" }
   ] }) });
-  const { AuthService } = await import("../src/services/authService.js");
+  setActivePinia(createPinia());
+  const { useAuthStore } = await import("../src/stores/authStore.js");
+  const authStore = useAuthStore();
   const { BibliotecaService: biblioteca, cambiosStock } = await import("../src/services/bibliotecaService.js");
   await biblioteca.cargarLibros();
   const cantidad = () => biblioteca.consultarDisponibilidad(2)[0].cantidad;
   const original = cantidad();
   assert.throws(() => biblioteca.retirar(2, 1), /sesión/);
-  AuthService.login("lector", "123");
+  authStore.login("lector", "123");
   assert.throws(() => biblioteca.retirar(99, 1), /no existen/);
   assert.throws(() => biblioteca.retirar(2, 99), /no existen/);
   assert.throws(() => biblioteca.retirar(1, 1), /stock/);
@@ -45,12 +48,12 @@ test("retiro y devolución mantienen stock, usuario, estados y persistencia", as
   assert.equal(biblioteca.obtenerPrestamosActivos().length, 2);
   biblioteca.devolver(otro.id_prestamo);
   assert.equal(biblioteca.obtenerPrestamosActivos().length, 1);
-  AuthService.logout();
+  authStore.logout();
   assert.throws(() => biblioteca.devolver(prestamo.id_prestamo), /sesión/);
-  AuthService.login("admin", "admin");
+  authStore.login("admin", "admin");
   assert.equal(biblioteca.obtenerPrestamosActivos().length, 0);
   assert.throws(() => biblioteca.devolver(prestamo.id_prestamo), /tuyo/);
-  AuthService.login("lector", "123");
+  authStore.login("lector", "123");
   const { BibliotecaService: recargada } = await import("../src/services/bibliotecaService.js?recarga");
   // El orden de la API puede cambiar: el stock se identifica por la clave estable.
   globalThis.fetch = async () => ({ ok: true, json: async () => ({ docs: [

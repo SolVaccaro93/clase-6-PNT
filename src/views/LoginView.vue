@@ -1,10 +1,12 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { AuthService } from "../services/authService.js";
+import { useAuthStore } from "../stores/authStore.js";
 
 const router = useRouter();
 const route = useRoute();
+
+const authStore = useAuthStore();
 
 const username = ref("");
 const password = ref("");
@@ -16,7 +18,7 @@ const destinoRedireccion = route.query.redirect || "/libros";
 function procesarLogin() {
   error.value = "";
   try {
-    AuthService.login(username.value, password.value);
+    authStore.login(username.value, password.value);
     // Redirige al destino previo exacto
     router.push(destinoRedireccion);
   } catch (e) {

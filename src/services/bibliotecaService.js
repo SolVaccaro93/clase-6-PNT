@@ -3,7 +3,7 @@
 // ==========================================
 
 import { ref } from "vue";
-import { AuthService } from "./authService.js";
+import { useAuthStore } from "../stores/authStore.js";
 
 const CLAVE_PRESTAMOS = "biblioteca_prestamos_stock";
 function leerDatos() {
@@ -20,9 +20,13 @@ function guardar(prestamos, stock) {
   datos = siguientes;
 }
 
+//función usuarioActual()
 function usuarioActual() {
-  if (!AuthService.usuario) throw new Error("Iniciá sesión para gestionar tus préstamos.");
-  return AuthService.usuario.usuario;
+  // El store se pide ADENTRO de la función (no arriba del archivo): se
+  // ejecuta al retirar/devolver, cuando Pinia ya está instalada.
+  const authStore = useAuthStore();
+  if (!authStore.usuario) throw new Error("Iniciá sesión para gestionar tus préstamos.");
+  return authStore.usuario.usuario;
 }
 
 function fechaActual() {
@@ -271,8 +275,9 @@ export const BibliotecaService = {
   solicitar(libroId, sucursalId) {
     return this.retirar(libroId, sucursalId);
   },
-
-  obtenerPrestamos(idUsuario = AuthService.usuario?.usuario) {
+//el valor por defecto se evalúa cada vez que se llama a la
+// función, así que sigue siendo reactivo dentro de un computed
+obtenerPrestamos(idUsuario = useAuthStore().usuario?.usuario) {
     cambiosPrestamos.value;
     return datos.prestamos.filter((p) => p.id_usuario === idUsuario).map((p) => ({ ...p }));
   },

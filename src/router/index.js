@@ -1,5 +1,5 @@
 import { createRouter, createWebHashHistory } from "vue-router";
-import { AuthService } from "../services/authService.js";
+import { useAuthStore } from "../stores/authStore.js";
 import InicioView from "../views/InicioView.vue";
 import ListadoView from "../views/ListadoView.vue";
 import DetalleView from "../views/DetalleView.vue";
@@ -51,17 +51,20 @@ const router = createRouter({
 // - from: ruta desde donde viene
 // - next: función que autoriza o desvía la navegación
 router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAuth && !AuthService.estaAutenticado()) {
+  // El store se pide ADENTRO del guardia (no arriba del archivo): así se
+  // ejecuta recién cuando navegamos, que es cuando Pinia ya está instalada.
+  const authStore = useAuthStore();
+
+  // Rutas que exigen sesión iniciada (getter: sin paréntesis)
+  if (to.meta.requiresAuth && !authStore.estaAutenticado) {
     next({ name: "login", query: { redirect: to.fullPath } });
     return;
   }
   // Verificamos si la ruta exige rol de administrador
-  if (to.meta.requiresAdmin) {
-    if (!AuthService.esAdmin()) {
-      // Si no es admin, lo mandamos al login guardando la ruta a la que intentaba ir
-      next({ name: "login", query: { redirect: to.fullPath } });
-      return;
-    }
+  if (to.meta.requiresAdmin && !authStore.esAdmin) {
+    // Si no es admin, lo mandamos al login guardando la ruta a la que intentaba ir
+    next({ name: "login", query: { redirect: to.fullPath } });
+    return;
   }
 
   // Navegación abierta: si no tiene restricciones, se permite el acceso sin pedir login

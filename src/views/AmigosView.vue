@@ -4,7 +4,7 @@
 // =========================================================================
 import { ref, computed, watch } from "vue";
 import { cambiosPrestamos } from "../services/bibliotecaService.js";
-import { AuthService } from "../services/authService.js";
+import { useAuthStore } from "../stores/authStore.js";
 import { AmigosService } from "../services/amigosService.js";
 import FeedLecturas from "../components/FeedLecturas.vue";
 
@@ -27,7 +27,8 @@ const FILTROS = [
 ];
 
 // La vista necesita un usuario logueado para saber de quién son los amigos.
-const usuario = computed(() => AuthService.usuario);
+const authStore = useAuthStore();
+const usuario = computed(() => authStore.usuario);
 
 async function cargarAmigos() {
   if (!usuario.value) {

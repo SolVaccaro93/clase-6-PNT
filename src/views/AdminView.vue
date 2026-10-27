@@ -1,11 +1,12 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 import { BibliotecaService, SUCURSALES, cambiosStock } from "../services/bibliotecaService.js";
-import { AuthService } from "../services/authService.js";
+import { useAuthStore } from "../stores/authStore.js";
 
 // Verificamos si el usuario actual es administrador
-const esAdmin = computed(() => AuthService.esAdmin());
-const usuario = computed(() => AuthService.usuario);
+const authStore = useAuthStore();
+const esAdmin = computed(() => authStore.esAdmin);    // getter: sin paréntesis
+const usuario = computed(() => authStore.usuario);
 
 const librosStock = ref([]);
 const filtroLibro = ref("");

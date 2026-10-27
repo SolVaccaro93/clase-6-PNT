@@ -2,7 +2,10 @@
 import { ref, computed, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { BibliotecaService, cambiosStock } from "../services/bibliotecaService.js";
-import { AuthService } from "../services/authService.js";
+import { useAuthStore } from "../stores/authStore.js";
+
+// obtenemos el store de autenticación (Pinia)
+const authStore = useAuthStore();
 
 const props = defineProps({
   libro: Object,
@@ -55,7 +58,7 @@ function solicitar() {
 
   // Si el usuario no ha iniciado sesión, lo redirigimos al Login
   // pasándole como parámetro 'redirect' la ruta exacta donde está ahora
-  if (!AuthService.estaAutenticado()) {
+if (!authStore.estaAutenticado) {
     router.push({
       name: "login",
       query: { redirect: route.fullPath }
