@@ -84,6 +84,7 @@ El detalle de cada funcionalidad está en la carpeta `docs/`:
 | Metadatos y puntaje de los libros | `docs/DOCUMENTACION_METADATOS_LIBROS.md` |
 | Múltiples préstamos | `docs/DOCUMENTACION_MULTIPLES_PRESTAMOS.md` |
 | Fecha de devolución y tardanza | `docs/DOCUMENTACION_FECHA_DEVOLUCION.md` |
+| Mapa de sucursales | `docs/DOCUMENTACION_MAPA_SUCURSALES.md` |
 | Feed de actividad (tipo Instagram) | `docs/DOCUMENTACION_FEED_ACTIVIDAD.md` |
 | Filtro por cantidad de estrellas | `docs/DOCUMENTACION_FILTRO_ESTRELLAS.md` |
 | Filtro por cantidad de páginas | `docs/DOCUMENTACION_FILTRO_PAGINAS.md` |
