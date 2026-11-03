@@ -26,6 +26,15 @@ const OPCIONES_PAGINAS = [
   { valor: "largos", texto: "📄 Más de 400", rango: { min: 401, max: Infinity } }
 ];
 
+// Requerimiento: Buscar por editorial, año de publicación e idioma
+const editorialSeleccionada = ref("Todas");
+const editoriales = ref(["Todas"]);
+const idiomaSeleccionado = ref("Todos");
+const idiomas = ref(["Todos"]);
+// Vacío = sin límite; v-model.number deja "" cuando se borra el campo
+const anioDesde = ref("");
+const anioHasta = ref("");
+
 const libros = ref([]);
 const isLoading = ref(true);
 const error = ref("");
@@ -38,6 +47,8 @@ async function cargarLibros() {
   try {
     libros.value = await BibliotecaService.cargarLibros(25);
     generos.value = ["Todos", ...BibliotecaService.getGeneros()];
+    editoriales.value = ["Todas", ...BibliotecaService.getEditoriales()];
+    idiomas.value = ["Todos", ...BibliotecaService.getIdiomas()];
   } catch (e) {
     error.value = e.message || "Error al conectar con la API de OpenLibrary.";
   } finally {
@@ -53,7 +64,13 @@ const librosFiltrados = computed(() => {
     busqueda.value,
     generoSeleccionado.value,
     estrellasMinimas.value,
-    opcionPaginas?.rango ?? null
+    opcionPaginas?.rango ?? null,
+    {
+      editorial: editorialSeleccionada.value,
+      idioma: idiomaSeleccionado.value,
+      anioDesde: anioDesde.value,
+      anioHasta: anioHasta.value
+    }
   );
 });
 
@@ -116,6 +133,34 @@ onMounted(() => {
             </option>
           </select>
         </label>
+
+        <label class="campo campo-editorial">
+          <span>Editorial</span>
+          <select v-model="editorialSeleccionada">
+            <option v-for="editorial in editoriales" :key="editorial" :value="editorial">
+              {{ editorial }}
+            </option>
+          </select>
+        </label>
+
+        <label class="campo campo-idioma">
+          <span>Idioma</span>
+          <select v-model="idiomaSeleccionado">
+            <option v-for="idioma in idiomas" :key="idioma" :value="idioma">
+              {{ idioma }}
+            </option>
+          </select>
+        </label>
+
+        <label class="campo campo-anio">
+          <span>Año desde</span>
+          <input v-model.number="anioDesde" type="number" inputmode="numeric" placeholder="Ej: 1900" />
+        </label>
+
+        <label class="campo campo-anio">
+          <span>Año hasta</span>
+          <input v-model.number="anioHasta" type="number" inputmode="numeric" placeholder="Ej: 2000" />
+        </label>
       </div>
 
       <!-- Grilla de libros -->
@@ -135,6 +180,7 @@ onMounted(() => {
 <style scoped>
 .filtros {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 24px;
 }
@@ -149,16 +195,22 @@ onMounted(() => {
 }
 
 .campo-busqueda {
-  flex: 1;
+  flex: 1 1 100%;
 }
 
-.campo-genero {
-  flex: 0 1 220px;
+.campo-genero,
+.campo-editorial {
+  flex: 1 1 200px;
 }
 
 .campo-estrellas,
-.campo-paginas {
-  flex: 0 1 150px;
+.campo-paginas,
+.campo-idioma {
+  flex: 1 1 140px;
+}
+
+.campo-anio {
+  flex: 0 1 120px;
 }
 
 .grilla {
@@ -178,7 +230,10 @@ p {
 
   .campo-genero,
   .campo-estrellas,
-  .campo-paginas {
+  .campo-paginas,
+  .campo-editorial,
+  .campo-idioma,
+  .campo-anio {
     flex: auto;
   }
 }

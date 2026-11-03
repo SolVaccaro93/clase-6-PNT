@@ -219,10 +219,16 @@ export const BibliotecaService = {
    * Busca libros por título o autor, y opcionalmente por género
    * por cantidad mínima de estrellas (puntaje de 0 a 5) y por rango de páginas.
    * @param {{ min: number, max: number } | null} rangoPaginas Ambos extremos incluidos; null = sin filtro
+   * @param {{ editorial?: string, idioma?: string, anioDesde?: number | null, anioHasta?: number | null }} filtros
+   *   Editorial e idioma exactos ("" o "Todas"/"Todos" = sin filtro); años con ambos extremos incluidos.
    */
-  buscar(texto = "", genero = "", estrellasMinimas = 0, rangoPaginas = null) {
+  buscar(texto = "", genero = "", estrellasMinimas = 0, rangoPaginas = null, filtros = {}) {
     const busquedaLimpia = texto.trim().toLowerCase();
     const generoLimpio = genero.trim().toLowerCase();
+    const editorialLimpia = (filtros.editorial || "").trim().toLowerCase();
+    const idiomaLimpio = (filtros.idioma || "").trim().toLowerCase();
+    const anioDesde = Number.isFinite(filtros.anioDesde) ? filtros.anioDesde : null;
+    const anioHasta = Number.isFinite(filtros.anioHasta) ? filtros.anioHasta : null;
 
     return libros.filter((libro) => {
       const coincideTexto =
@@ -241,7 +247,26 @@ export const BibliotecaService = {
         !rangoPaginas ||
         (libro.paginas >= rangoPaginas.min && libro.paginas <= rangoPaginas.max);
 
-      return coincideTexto && coincideGenero && coincideEstrellas && coincidePaginas;
+      const coincideEditorial =
+        !editorialLimpia ||
+        editorialLimpia === "todas" ||
+        libro.editorial.toLowerCase() === editorialLimpia;
+
+      const coincideIdioma =
+        !idiomaLimpio ||
+        idiomaLimpio === "todos" ||
+        libro.idioma.toLowerCase() === idiomaLimpio;
+
+      // Los libros sin año numérico (ej: "Clásico") quedan afuera si se pide un rango de años
+      const tieneAnio = typeof libro.anioPublicacion === "number";
+      const coincideAnio =
+        (anioDesde === null && anioHasta === null) ||
+        (tieneAnio &&
+          (anioDesde === null || libro.anioPublicacion >= anioDesde) &&
+          (anioHasta === null || libro.anioPublicacion <= anioHasta));
+
+      return coincideTexto && coincideGenero && coincideEstrellas && coincidePaginas &&
+        coincideEditorial && coincideIdioma && coincideAnio;
     });
   },
 
@@ -251,6 +276,20 @@ export const BibliotecaService = {
   getGeneros() {
     const generosSet = new Set(libros.map((libro) => libro.genero));
     return Array.from(generosSet);
+  },
+
+  /**
+   * Obtiene las editoriales disponibles sin repetidos, ordenadas alfabéticamente.
+   */
+  getEditoriales() {
+    return Array.from(new Set(libros.map((libro) => libro.editorial))).sort((a, b) => a.localeCompare(b, "es"));
+  },
+
+  /**
+   * Obtiene los idiomas disponibles sin repetidos, ordenados alfabéticamente.
+   */
+  getIdiomas() {
+    return Array.from(new Set(libros.map((libro) => libro.idioma))).sort((a, b) => a.localeCompare(b, "es"));
   },
 
   /**
