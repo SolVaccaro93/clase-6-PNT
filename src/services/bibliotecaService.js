@@ -43,6 +43,39 @@ export const SUCURSALES = [
 // Contador reactivo: aumenta cada vez que cambia el stock, para que el mapa se actualice.
 export const cambiosStock = ref(0);
 
+// Autores curados: el catálogo se arma con sus obras más editadas en OpenLibrary,
+// así no entran libros cualquiera que devuelva una búsqueda genérica.
+export const AUTORES_CATALOGO = [
+  { nombre: "Jorge Luis Borges", pais: "Argentina" },
+  { nombre: "Julio Cortázar", pais: "Argentina" },
+  { nombre: "Ernesto Sabato", pais: "Argentina" },
+  { nombre: "Adolfo Bioy Casares", pais: "Argentina" },
+  { nombre: "Manuel Puig", pais: "Argentina" },
+  { nombre: "Roberto Arlt", pais: "Argentina" },
+  { nombre: "Silvina Ocampo", pais: "Argentina" },
+  { nombre: "Alejandra Pizarnik", pais: "Argentina" },
+  { nombre: "Ricardo Piglia", pais: "Argentina" },
+  { nombre: "Samanta Schweblin", pais: "Argentina" },
+  { nombre: "Mariana Enriquez", pais: "Argentina" },
+  { nombre: "Gabriel García Márquez", pais: "Colombia" },
+  { nombre: "Mario Vargas Llosa", pais: "Perú" },
+  { nombre: "Isabel Allende", pais: "Chile" },
+  { nombre: "Roberto Bolaño", pais: "Chile" },
+  { nombre: "Juan Rulfo", pais: "México" },
+  { nombre: "Carlos Fuentes", pais: "México" },
+  { nombre: "Octavio Paz", pais: "México" },
+  { nombre: "Mario Benedetti", pais: "Uruguay" },
+  { nombre: "Eduardo Galeano", pais: "Uruguay" },
+  { nombre: "Horacio Quiroga", pais: "Uruguay" },
+  { nombre: "Alejo Carpentier", pais: "Cuba" }
+];
+const OBRAS_POR_AUTOR = 3;
+
+// Compara nombres sin tildes ni mayúsculas ("Sábato" = "Sabato")
+function normalizar(texto) {
+  return texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+}
+
 // Lista de libros que se llenará con el fetch a OpenLibrary
 let libros = [];
 let catalogoCargado = false;
@@ -77,10 +110,10 @@ function inicializarStockParaLibros(listaLibros) {
 
 export const BibliotecaService = {
   /**
-   * Carga libros desde la API pública de OpenLibrary usando fetch
-   * @param {number} limite Cantidad de libros a traer (por defecto 25)
+   * Carga libros de autores argentinos y latinoamericanos desde la API pública de OpenLibrary
+   * @param {number} limite Cantidad máxima de libros a traer
    */
-  async cargarLibros(limite = 25) {
+  async cargarLibros(limite = AUTORES_CATALOGO.length * OBRAS_POR_AUTOR) {
     if (catalogoCargado) return libros;
     if (cargaPendiente) return cargaPendiente;
 
@@ -108,15 +141,39 @@ export const BibliotecaService = {
       "cover_i",
       "cover_edition_key"
     ].join(",");
-    const URL = `https://openlibrary.org/search.json?q=novela&limit=${limite}&fields=${campos}`;
-    const respuesta = await fetch(URL);
+    // Una búsqueda por autor, en paralelo. Se ordena por cantidad de ediciones para
+    // quedarse con las obras conocidas y no con antologías o estudios sobre el autor.
+    const resultados = await Promise.allSettled(
+      AUTORES_CATALOGO.map(async (autor) => {
+        const URL = `https://openlibrary.org/search.json?author=${encodeURIComponent(autor.nombre)}` +
+          `&language=spa&sort=editions&limit=10&fields=${campos}`;
+        const respuesta = await fetch(URL);
+        if (!respuesta.ok) throw new Error(`Error ${respuesta.status}`);
+        const data = await respuesta.json();
+        return (data.docs || [])
+          // Solo obras donde el autor buscado es el autor principal y que tengan portada
+          .filter((doc) => doc.author_name?.[0] && normalizar(doc.author_name[0]) === normalizar(autor.nombre))
+          .filter((doc) => doc.cover_i || doc.cover_edition_key)
+          .slice(0, OBRAS_POR_AUTOR)
+          .map((doc) => ({ ...doc, pais: autor.pais }));
+      })
+    );
 
-    if (!respuesta.ok) {
-      throw new Error(`Error ${respuesta.status}: No se pudieron obtener los libros.`);
+    if (resultados.every((r) => r.status === "rejected")) {
+      throw new Error("No se pudieron obtener los libros.");
     }
 
-    const data = await respuesta.json();
-    const docs = data.docs || [];
+    // Sin repetidos (misma obra o mismo título)
+    const vistos = new Set();
+    const docs = resultados
+      .flatMap((r) => (r.status === "fulfilled" ? r.value : []))
+      .filter((doc) => {
+        const titulo = normalizar(doc.title);
+        if (vistos.has(doc.key) || vistos.has(titulo)) return false;
+        vistos.add(doc.key);
+        vistos.add(titulo);
+        return true;
+      });
 
     const generosEjemplo = ["Novela", "Ficción", "Clásico", "Drama", "Aventura"];
     const mapaIdiomas = {
@@ -173,7 +230,8 @@ export const BibliotecaService = {
       }
 
       // Idioma
-      const codIdioma = doc.language && doc.language.length > 0 ? doc.language[0] : null;
+      // OpenLibrary lista los idiomas de todas las ediciones; si hay edición en español se muestra esa
+      const codIdioma = doc.language?.includes("spa") ? "spa" : doc.language?.[0] || null;
       const idioma = codIdioma ? (mapaIdiomas[codIdioma] || codIdioma.toUpperCase()) : "Español";
 
       // Editorial
@@ -190,6 +248,7 @@ export const BibliotecaService = {
         clave: doc.key,
         titulo: doc.title,
         autor: doc.author_name ? doc.author_name[0] : "Autor desconocido",
+        pais: doc.pais,
         genero: genero,
         portada,
         portadaGrande,

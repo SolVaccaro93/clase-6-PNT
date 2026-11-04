@@ -13,7 +13,7 @@ async function cargar() {
   isLoading.value = true;
   error.value = "";
   try {
-    await BibliotecaService.cargarLibros(25);
+    await BibliotecaService.cargarLibros();
   } catch (e) {
     error.value = e.message || "No se pudo cargar el catálogo.";
   } finally {

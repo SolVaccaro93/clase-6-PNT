@@ -45,7 +45,7 @@ async function cargarLibros() {
   error.value = "";
 
   try {
-    libros.value = await BibliotecaService.cargarLibros(25);
+    libros.value = await BibliotecaService.cargarLibros();
     generos.value = ["Todos", ...BibliotecaService.getGeneros()];
     editoriales.value = ["Todas", ...BibliotecaService.getEditoriales()];
     idiomas.value = ["Todos", ...BibliotecaService.getIdiomas()];

@@ -16,7 +16,7 @@ async function cargarDetalle() {
 
   try {
     // También carga el catálogo si se abre directamente la URL del detalle.
-    await BibliotecaService.cargarLibros(25);
+    await BibliotecaService.cargarLibros();
     libro.value = BibliotecaService.getLibroPorId(props.id);
   } catch (e) {
     error.value = e.message || "No se pudo cargar el libro.";

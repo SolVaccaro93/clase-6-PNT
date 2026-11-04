@@ -80,7 +80,7 @@ export const AmigosService = {
   async getFeedActividad(idUsuario) {
     // Las portadas salen del catálogo; si la API falla el feed se muestra igual sin ellas.
     try {
-      await BibliotecaService.cargarLibros(25);
+      await BibliotecaService.cargarLibros();
     } catch {
       // sin portadas
     }

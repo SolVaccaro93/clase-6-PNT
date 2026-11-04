@@ -15,7 +15,7 @@ const isLoading = ref(true);
 async function cargarDatosAdmin() {
   isLoading.value = true;
   try {
-    await BibliotecaService.cargarLibros(25);
+    await BibliotecaService.cargarLibros();
     librosStock.value = BibliotecaService.obtenerTodoElStock();
   } finally {
     isLoading.value = false;
