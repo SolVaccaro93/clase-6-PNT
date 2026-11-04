@@ -4,6 +4,12 @@
 
 import { ref } from "vue";
 import { useAuthStore } from "../stores/authStore.js";
+import { autorArgentinoDe, consultaAutoresArgentinos } from "./autoresArgentinos.js";
+
+export const ORIGEN_ARGENTINA = "Argentina";
+export const ORIGEN_OTROS = "Otros países";
+const MAX_LIBROS_ARGENTINOS = 15;
+const MAX_LIBROS_POR_AUTOR_ARGENTINO = 2;
 
 const CLAVE_PRESTAMOS = "biblioteca_prestamos_stock";
 function leerDatos() {
@@ -75,6 +81,30 @@ function inicializarStockParaLibros(listaLibros) {
   });
 }
 
+// Trae libros de autores argentinos, con un máximo por autor para que haya variedad.
+// Es un agregado: si la consulta falla, el catálogo se carga igual con los libros generales.
+async function buscarDocsArgentinos(campos) {
+  try {
+    const consulta = encodeURIComponent(consultaAutoresArgentinos());
+    const respuesta = await fetch(`https://openlibrary.org/search.json?q=${consulta}&limit=100&fields=${campos}`);
+    if (!respuesta.ok) return [];
+
+    const data = await respuesta.json();
+    const librosPorAutor = new Map();
+    return (data.docs || [])
+      .filter((doc) => {
+        const autor = autorArgentinoDe(doc.author_name);
+        if (!autor) return false;
+        const cantidad = librosPorAutor.get(autor) || 0;
+        librosPorAutor.set(autor, cantidad + 1);
+        return cantidad < MAX_LIBROS_POR_AUTOR_ARGENTINO;
+      })
+      .slice(0, MAX_LIBROS_ARGENTINOS);
+  } catch {
+    return [];
+  }
+}
+
 export const BibliotecaService = {
   /**
    * Carga libros desde la API pública de OpenLibrary usando fetch
@@ -109,14 +139,21 @@ export const BibliotecaService = {
       "cover_edition_key"
     ].join(",");
     const URL = `https://openlibrary.org/search.json?q=novela&limit=${limite}&fields=${campos}`;
-    const respuesta = await fetch(URL);
+    const [respuesta, docsArgentinos] = await Promise.all([
+      fetch(URL),
+      buscarDocsArgentinos(campos)
+    ]);
 
     if (!respuesta.ok) {
       throw new Error(`Error ${respuesta.status}: No se pudieron obtener los libros.`);
     }
 
     const data = await respuesta.json();
-    const docs = data.docs || [];
+    const docsGenerales = (data.docs || []).slice(0, limite);
+
+    // Los argentinos van al final: así los libros generales conservan su id y su stock.
+    const clavesGenerales = new Set(docsGenerales.map((doc) => doc.key));
+    const docs = [...docsGenerales, ...docsArgentinos.filter((doc) => !clavesGenerales.has(doc.key))];
 
     const generosEjemplo = ["Novela", "Ficción", "Clásico", "Drama", "Aventura"];
     const mapaIdiomas = {
@@ -132,7 +169,7 @@ export const BibliotecaService = {
       chi: "Chino"
     };
 
-    libros = docs.slice(0, limite).map((doc, index) => {
+    libros = docs.map((doc, index) => {
       let genero = "Novela";
       if (doc.subject && doc.subject.length > 0 && typeof doc.subject[0] === "string") {
         genero = doc.subject[0].split(",")[0].trim();
@@ -200,7 +237,8 @@ export const BibliotecaService = {
         criticasTotal,
         editorial,
         idioma,
-        ediciones
+        ediciones,
+        origen: autorArgentinoDe(doc.author_name) ? ORIGEN_ARGENTINA : ORIGEN_OTROS
       };
     });
 
@@ -219,14 +257,15 @@ export const BibliotecaService = {
    * Busca libros por título o autor, y opcionalmente por género
    * por cantidad mínima de estrellas (puntaje de 0 a 5) y por rango de páginas.
    * @param {{ min: number, max: number } | null} rangoPaginas Ambos extremos incluidos; null = sin filtro
-   * @param {{ editorial?: string, idioma?: string, anioDesde?: number | null, anioHasta?: number | null }} filtros
-   *   Editorial e idioma exactos ("" o "Todas"/"Todos" = sin filtro); años con ambos extremos incluidos.
+   * @param {{ editorial?: string, idioma?: string, origen?: string, anioDesde?: number | null, anioHasta?: number | null }} filtros
+   *   Editorial, idioma y origen exactos ("" o "Todas"/"Todos" = sin filtro); años con ambos extremos incluidos.
    */
   buscar(texto = "", genero = "", estrellasMinimas = 0, rangoPaginas = null, filtros = {}) {
     const busquedaLimpia = texto.trim().toLowerCase();
     const generoLimpio = genero.trim().toLowerCase();
     const editorialLimpia = (filtros.editorial || "").trim().toLowerCase();
     const idiomaLimpio = (filtros.idioma || "").trim().toLowerCase();
+    const origenLimpio = (filtros.origen || "").trim().toLowerCase();
     const anioDesde = Number.isFinite(filtros.anioDesde) ? filtros.anioDesde : null;
     const anioHasta = Number.isFinite(filtros.anioHasta) ? filtros.anioHasta : null;
 
@@ -257,6 +296,11 @@ export const BibliotecaService = {
         idiomaLimpio === "todos" ||
         libro.idioma.toLowerCase() === idiomaLimpio;
 
+      const coincideOrigen =
+        !origenLimpio ||
+        origenLimpio === "todos" ||
+        libro.origen.toLowerCase() === origenLimpio;
+
       // Los libros sin año numérico (ej: "Clásico") quedan afuera si se pide un rango de años
       const tieneAnio = typeof libro.anioPublicacion === "number";
       const coincideAnio =
@@ -266,7 +310,7 @@ export const BibliotecaService = {
           (anioHasta === null || libro.anioPublicacion <= anioHasta));
 
       return coincideTexto && coincideGenero && coincideEstrellas && coincidePaginas &&
-        coincideEditorial && coincideIdioma && coincideAnio;
+        coincideEditorial && coincideIdioma && coincideOrigen && coincideAnio;
     });
   },
 

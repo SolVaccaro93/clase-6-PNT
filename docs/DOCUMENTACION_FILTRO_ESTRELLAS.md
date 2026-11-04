@@ -4,7 +4,7 @@
 Agregar al buscador del listado un filtro para **buscar por cantidad de estrellas**.
 
 ## 🖥️ Qué ve el usuario
-En **Listado** (`/#/libros`), junto a "Buscar libro" y "Género", hay un selector **Estrellas**:
+En **Listado** (`/#/libros`), dentro del panel **Filtros**, hay un selector **Estrellas**:
 
 | Opción | Muestra |
 |---|---|
