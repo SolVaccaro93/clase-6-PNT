@@ -2,11 +2,29 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { BibliotecaService, SUCURSALES, cambiosStock } from "../services/bibliotecaService.js";
 import { useAuthStore } from "../stores/authStore.js";
+import { useVotosStore } from "../stores/votosStore.js";
 
 // Verificamos si el usuario actual es administrador
 const authStore = useAuthStore();
 const esAdmin = computed(() => authStore.esAdmin);    // getter: sin paréntesis
 const usuario = computed(() => authStore.usuario);
+
+// Votos de estrellas: métrica y botón para reiniciarlos (útil para repetir la demo)
+const votosStore = useVotosStore();
+const totalVotos = computed(() =>
+  Object.values(votosStore.votos).reduce((total, porUsuario) => total + Object.keys(porUsuario).length, 0)
+);
+const mensajeVotos = ref("");
+
+function reiniciarVotos() {
+  if (!window.confirm("¿Borrar todos los votos de estrellas? Los libros vuelven a su puntaje original.")) return;
+  try {
+    votosStore.reiniciar();
+    mensajeVotos.value = "Votos reiniciados.";
+  } catch (error) {
+    mensajeVotos.value = error.message;
+  }
+}
 
 const librosStock = ref([]);
 const filtroLibro = ref("");
@@ -96,7 +114,23 @@ watch(cambiosStock, () => {
           <span class="kpi-num">{{ SUCURSALES.length }}</span>
           <span class="kpi-desc">Sucursales Activas</span>
         </div>
+        <div class="tarjeta-kpi">
+          <span class="kpi-num">{{ totalVotos }}</span>
+          <span class="kpi-desc">Votos de estrellas</span>
+        </div>
       </div>
+
+      <!-- Requerimiento: Calificar libros con estrellas - reinicio de votos para la demo -->
+      <section class="seccion-votos">
+        <div>
+          <h3>⭐ Votos de estrellas</h3>
+          <p class="subtitulo">Borra los votos de todos los usuarios y deja cada libro con su puntaje original.</p>
+        </div>
+        <button type="button" class="btn-reiniciar" :disabled="totalVotos === 0" @click="reiniciarVotos">
+          Reiniciar votos
+        </button>
+        <p v-if="mensajeVotos" class="mensaje-votos" role="status">{{ mensajeVotos }}</p>
+      </section>
 
       <!-- Sección de Gestión de Stock -->
       <section class="seccion-stock">
@@ -369,4 +403,42 @@ watch(cambiosStock, () => {
 .num-stock.cero {
   color: var(--color-danger);
 }
+
+.seccion-votos {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radio);
+  padding: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.seccion-votos h3 {
+  margin: 0;
+  color: var(--color-accent);
+  font-size: 1.15rem;
+}
+
+.btn-reiniciar {
+  background-color: var(--color-danger);
+  color: white;
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radio-chico);
+}
+
+.btn-reiniciar:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.mensaje-votos {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--color-success);
+  font-size: 0.85rem;
+}
 </style>
+

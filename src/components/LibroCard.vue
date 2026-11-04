@@ -3,6 +3,7 @@ import { ref, computed, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { BibliotecaService, ORIGEN_ARGENTINA, cambiosStock } from "../services/bibliotecaService.js";
 import { useAuthStore } from "../stores/authStore.js";
+import EstrellasLibro from "./EstrellasLibro.vue";
 
 // obtenemos el store de autenticación (Pinia)
 const authStore = useAuthStore();
@@ -118,6 +119,9 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
     <h2>{{ libro.titulo }}</h2>
     <p class="autor">Autor: {{ libro.autor }}</p>
 
+       <!-- Requerimiento: Calificar libros con estrellas (muestra el promedio y deja votar) -->
+    <EstrellasLibro :libro="libro" />
+
     <!-- Metadatos rápidos en el catálogo (páginas, año, puntaje de la crítica) -->
     <div v-if="mostrarDetalle" class="metadatos-preview">
       <span v-if="libro.origen === ORIGEN_ARGENTINA" class="meta-chip chip-origen" title="Autor argentino">
@@ -129,9 +133,7 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
       <span class="meta-chip chip-anio" :title="`Año de publicación: ${libro.anioPublicacion}`">
         📅 {{ libro.anioPublicacion }}
       </span>
-      <span class="meta-chip chip-puntaje" :title="`Puntaje de la crítica: ${libro.puntajeTexto} (${libro.criticasTotal} críticas)`">
-        ⭐ {{ libro.puntaje }} <span class="meta-sub">/ 5</span>
-      </span>
+
     </div>
 
     <!-- Ficha Técnica Completa (exclusiva de la vista de Detalle) -->
@@ -146,13 +148,7 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
           <span class="ficha-label">📄 Cantidad de Páginas</span>
           <span class="ficha-valor">{{ libro.paginas }} páginas</span>
         </div>
-        <div class="ficha-item">
-          <span class="ficha-label">⭐ Puntaje de la Crítica</span>
-          <span class="ficha-valor valor-puntaje">
-            {{ libro.puntajeTexto }}
-            <small v-if="libro.criticasTotal" class="criticas-count">({{ libro.criticasTotal }} críticas)</small>
-          </span>
-        </div>
+        
         <div class="ficha-item">
           <span class="ficha-label">🏢 Editorial</span>
           <span class="ficha-valor">{{ libro.editorial }}</span>

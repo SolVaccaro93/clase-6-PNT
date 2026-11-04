@@ -5,6 +5,7 @@
 import { ref } from "vue";
 import { useAuthStore } from "../stores/authStore.js";
 import { autorArgentinoDe, consultaAutoresArgentinos } from "./autoresArgentinos.js";
+import { useVotosStore } from "../stores/votosStore.js";
 
 export const ORIGEN_ARGENTINA = "Argentina";
 export const ORIGEN_OTROS = "Otros países";
@@ -336,6 +337,11 @@ export const BibliotecaService = {
     const anioDesde = Number.isFinite(filtros.anioDesde) ? filtros.anioDesde : null;
     const anioHasta = Number.isFinite(filtros.anioHasta) ? filtros.anioHasta : null;
 
+    // Las estrellas se comparan contra el puntaje VIGENTE (API + votos de usuarios).
+    // El store solo se pide si de verdad se filtra por estrellas, para que las demás
+    // búsquedas (y sus tests) no dependan de Pinia.
+    const votos = Number(estrellasMinimas) > 0 ? useVotosStore() : null;
+
     return libros.filter((libro) => {
       const coincideTexto =
         !busquedaLimpia ||
@@ -347,7 +353,8 @@ export const BibliotecaService = {
         generoLimpio === "todos" ||
         libro.genero.toLowerCase() === generoLimpio;
 
-      const coincideEstrellas = (libro.puntaje ?? 0) >= Number(estrellasMinimas);
+     
+      const coincideEstrellas = !votos || votos.puntajeVigente(libro) >= Number(estrellasMinimas);
 
       const coincidePaginas =
         !rangoPaginas ||

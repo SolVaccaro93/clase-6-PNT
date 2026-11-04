@@ -62,11 +62,19 @@ En **Listado**, el buscador por título o autor está siempre visible. El botón
 * **Editorial.**
 * **Idioma.**
 * **Año de publicación:** desde y hasta.
-* **Estrellas:** solo los libros con ese puntaje o más (3, 3,5, 4 o 4,5).
+* **Estrellas:** solo los libros con ese puntaje o más (3, 3,5, 4 o 4,5). Se usa el puntaje actual, que incluye los votos de los usuarios.
 * **Páginas:** hasta 200, de 201 a 400, o más de 400.
 * **Origen:** Argentina u otros países, según el autor. El catálogo suma hasta 15 libros de autores argentinos a los 25 generales.
 
 Los filtros se combinan: un libro aparece solo si los cumple todos. Los que están en uso se muestran como chips que se quitan con ✕, junto con la cantidad de resultados.
+
+## Calificación con estrellas
+
+Cada libro muestra sus estrellas en la tarjeta del listado y en el detalle, con el promedio y la cantidad de votos de usuarios, por ejemplo `★★★★☆ 3,8 (2)`. Al pasar el mouse se ve una vista previa de media en media estrella, y al hacer clic se guarda el voto. Sin sesión iniciada, el clic lleva al login y después vuelve al mismo libro.
+
+Cada usuario tiene un voto por libro y puede cambiarlo. El promedio combina el puntaje original de OpenLibrary (que cuenta como 3 votos) con los votos de los usuarios de la app. También se puede votar con el teclado: Tab para llegar a las estrellas, flechas para elegir y Enter para votar.
+
+Los votos se guardan en localStorage (`biblioteca_votos`) y sobreviven a recargas. El administrador puede borrarlos desde el **Panel Admin** con **Reiniciar votos**, para repetir la demo.
 
 ## Mis amigos y feed de actividad
 
@@ -90,6 +98,7 @@ El detalle de cada funcionalidad está en la carpeta `docs/`:
 | Mapa de sucursales | `docs/DOCUMENTACION_MAPA_SUCURSALES.md` |
 | Feed de actividad (tipo Instagram) | `docs/DOCUMENTACION_FEED_ACTIVIDAD.md` |
 | Filtro por cantidad de estrellas | `docs/DOCUMENTACION_FILTRO_ESTRELLAS.md` |
+| Calificación con estrellas (votos) | `docs/DOCUMENTACION_VOTOS_ESTRELLAS.md` |
 | Filtro por cantidad de páginas | `docs/DOCUMENTACION_FILTRO_PAGINAS.md` |
 | Libros argentinos y filtro por origen | `docs/DOCUMENTACION_ORIGEN_LIBROS.md` |
 | Panel de filtros y libros sin stock | `docs/DOCUMENTACION_FILTROS_Y_SIN_STOCK.md` |
