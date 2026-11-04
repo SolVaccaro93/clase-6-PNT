@@ -10,6 +10,8 @@ export const ORIGEN_ARGENTINA = "Argentina";
 export const ORIGEN_OTROS = "Otros países";
 const MAX_LIBROS_ARGENTINOS = 15;
 const MAX_LIBROS_POR_AUTOR_ARGENTINO = 2;
+// Si OpenLibrary no responde, se corta la consulta para mostrar el error en vez de quedar cargando
+const TIEMPO_MAXIMO_CONSULTA_MS = 10000;
 
 const CLAVE_PRESTAMOS = "biblioteca_prestamos_stock";
 function leerDatos() {
@@ -119,7 +121,8 @@ function inicializarStockParaLibros(listaLibros) {
 async function buscarDocsArgentinos(campos) {
   try {
     const consulta = encodeURIComponent(consultaAutoresArgentinos());
-    const respuesta = await fetch(`https://openlibrary.org/search.json?q=${consulta}&limit=100&fields=${campos}`);
+    const respuesta = await fetch(`https://openlibrary.org/search.json?q=${consulta}&limit=100&fields=${campos}`,
+      { signal: AbortSignal.timeout(TIEMPO_MAXIMO_CONSULTA_MS) });
     if (!respuesta.ok) return [];
 
     const data = await respuesta.json();
@@ -177,7 +180,7 @@ export const BibliotecaService = {
       AUTORES_CATALOGO.map(async (autor) => {
         const URL = `https://openlibrary.org/search.json?author=${encodeURIComponent(autor.nombre)}` +
           `&language=spa&sort=editions&limit=10&fields=${campos}`;
-        const respuesta = await fetch(URL);
+        const respuesta = await fetch(URL, { signal: AbortSignal.timeout(TIEMPO_MAXIMO_CONSULTA_MS) });
         if (!respuesta.ok) throw new Error(`Error ${respuesta.status}`);
         const data = await respuesta.json();
         return (data.docs || [])
