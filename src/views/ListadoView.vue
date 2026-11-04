@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { BibliotecaService } from "../services/bibliotecaService.js";
+import { BibliotecaService, ORIGEN_ARGENTINA, ORIGEN_OTROS } from "../services/bibliotecaService.js";
 import LibroCard from "../components/LibroCard.vue";
 
 const busqueda = ref("");
@@ -35,11 +35,15 @@ const idiomas = ref(["Todos"]);
 const anioDesde = ref("");
 const anioHasta = ref("");
 
+// Tarea 14: Filtrar por origen - Sol
+const origenSeleccionado = ref("Todos");
+const ORIGENES = ["Todos", ORIGEN_ARGENTINA, ORIGEN_OTROS];
+
 const libros = ref([]);
 const isLoading = ref(true);
 const error = ref("");
 
-// Carga inicial de los 25 libros desde la API
+// Carga inicial desde la API: 25 libros generales más los de autores argentinos
 async function cargarLibros() {
   isLoading.value = true;
   error.value = "";
@@ -68,11 +72,63 @@ const librosFiltrados = computed(() => {
     {
       editorial: editorialSeleccionada.value,
       idioma: idiomaSeleccionado.value,
+      origen: origenSeleccionado.value,
       anioDesde: anioDesde.value,
       anioHasta: anioHasta.value
     }
   );
 });
+
+// ---- Panel de filtros: se despliega con un botón para no ocupar toda la pantalla ----
+const panelAbierto = ref(false);
+
+const textoAnio = computed(() => {
+  const desde = Number.isFinite(anioDesde.value) ? anioDesde.value : null;
+  const hasta = Number.isFinite(anioHasta.value) ? anioHasta.value : null;
+  if (desde !== null && hasta !== null) return `Año: ${desde} a ${hasta}`;
+  if (desde !== null) return `Año: desde ${desde}`;
+  if (hasta !== null) return `Año: hasta ${hasta}`;
+  return "";
+});
+
+// Filtros en uso: se muestran como chips y cada uno sabe cómo quitarse
+const filtrosActivos = computed(() => {
+  const activos = [];
+  const agregar = (clave, texto, quitar) => activos.push({ clave, texto, quitar });
+
+  if (generoSeleccionado.value !== "Todos") {
+    agregar("genero", `Género: ${generoSeleccionado.value}`, () => (generoSeleccionado.value = "Todos"));
+  }
+  if (origenSeleccionado.value !== "Todos") {
+    agregar("origen", `Origen: ${origenSeleccionado.value}`, () => (origenSeleccionado.value = "Todos"));
+  }
+  if (idiomaSeleccionado.value !== "Todos") {
+    agregar("idioma", `Idioma: ${idiomaSeleccionado.value}`, () => (idiomaSeleccionado.value = "Todos"));
+  }
+  if (editorialSeleccionada.value !== "Todas") {
+    agregar("editorial", `Editorial: ${editorialSeleccionada.value}`, () => (editorialSeleccionada.value = "Todas"));
+  }
+  if (estrellasMinimas.value !== 0) {
+    const opcion = OPCIONES_ESTRELLAS.find((o) => o.valor === estrellasMinimas.value);
+    agregar("estrellas", opcion.texto, () => (estrellasMinimas.value = 0));
+  }
+  if (rangoPaginas.value !== "todas") {
+    const opcion = OPCIONES_PAGINAS.find((o) => o.valor === rangoPaginas.value);
+    agregar("paginas", opcion.texto, () => (rangoPaginas.value = "todas"));
+  }
+  if (textoAnio.value) {
+    agregar("anio", textoAnio.value, () => {
+      anioDesde.value = "";
+      anioHasta.value = "";
+    });
+  }
+  return activos;
+});
+
+function limpiarFiltros() {
+  filtrosActivos.value.forEach((filtro) => filtro.quitar());
+  busqueda.value = "";
+}
 
 onMounted(() => {
   cargarLibros();
@@ -97,17 +153,34 @@ onMounted(() => {
     <!-- Contenido principal -->
     <div v-else>
       <!-- Filtros de búsqueda (tarea de Patricio) -->
-      <div class="filtros">
+      <div class="barra-busqueda">
         <label class="campo campo-busqueda">
-          <span>Buscar libro</span>
+          <span class="sr-only">Buscar libro</span>
           <input
             v-model="busqueda"
-            type="text"
+            type="search"
             placeholder="Buscar por título o autor..."
           />
         </label>
 
-        <label class="campo campo-genero">
+        <button
+          type="button"
+          class="btn-filtros"
+          :class="{ activo: panelAbierto }"
+          :aria-expanded="panelAbierto"
+          aria-controls="panel-filtros"
+          @click="panelAbierto = !panelAbierto"
+        >
+          Filtros
+          <span v-if="filtrosActivos.length" class="contador-filtros">
+            {{ filtrosActivos.length }}<span class="sr-only"> activos</span>
+          </span>
+          <span class="flecha" aria-hidden="true">{{ panelAbierto ? "▴" : "▾" }}</span>
+        </button>
+      </div>
+
+      <div v-show="panelAbierto" id="panel-filtros" class="panel-filtros">
+        <label class="campo">
           <span>Género</span>
           <select v-model="generoSeleccionado">
             <option v-for="genero in generos" :key="genero" :value="genero">
@@ -116,34 +189,16 @@ onMounted(() => {
           </select>
         </label>
 
-        <label class="campo campo-estrellas">
-          <span>Estrellas</span>
-          <select v-model.number="estrellasMinimas">
-            <option v-for="opcion in OPCIONES_ESTRELLAS" :key="opcion.valor" :value="opcion.valor">
-              {{ opcion.texto }}
+        <label class="campo">
+          <span>Origen</span>
+          <select v-model="origenSeleccionado">
+            <option v-for="origen in ORIGENES" :key="origen" :value="origen">
+              {{ origen }}
             </option>
           </select>
         </label>
 
-        <label class="campo campo-paginas">
-          <span>Páginas</span>
-          <select v-model="rangoPaginas">
-            <option v-for="opcion in OPCIONES_PAGINAS" :key="opcion.valor" :value="opcion.valor">
-              {{ opcion.texto }}
-            </option>
-          </select>
-        </label>
-
-        <label class="campo campo-editorial">
-          <span>Editorial</span>
-          <select v-model="editorialSeleccionada">
-            <option v-for="editorial in editoriales" :key="editorial" :value="editorial">
-              {{ editorial }}
-            </option>
-          </select>
-        </label>
-
-        <label class="campo campo-idioma">
+        <label class="campo">
           <span>Idioma</span>
           <select v-model="idiomaSeleccionado">
             <option v-for="idioma in idiomas" :key="idioma" :value="idioma">
@@ -152,19 +207,75 @@ onMounted(() => {
           </select>
         </label>
 
-        <label class="campo campo-anio">
-          <span>Año desde</span>
-          <input v-model.number="anioDesde" type="number" inputmode="numeric" placeholder="Ej: 1900" />
+        <label class="campo">
+          <span>Editorial</span>
+          <select v-model="editorialSeleccionada">
+            <option v-for="editorial in editoriales" :key="editorial" :value="editorial">
+              {{ editorial }}
+            </option>
+          </select>
         </label>
 
-        <label class="campo campo-anio">
-          <span>Año hasta</span>
-          <input v-model.number="anioHasta" type="number" inputmode="numeric" placeholder="Ej: 2000" />
+        <label class="campo">
+          <span>Estrellas</span>
+          <select v-model.number="estrellasMinimas">
+            <option v-for="opcion in OPCIONES_ESTRELLAS" :key="opcion.valor" :value="opcion.valor">
+              {{ opcion.texto }}
+            </option>
+          </select>
         </label>
+
+        <label class="campo">
+          <span>Páginas</span>
+          <select v-model="rangoPaginas">
+            <option v-for="opcion in OPCIONES_PAGINAS" :key="opcion.valor" :value="opcion.valor">
+              {{ opcion.texto }}
+            </option>
+          </select>
+        </label>
+
+        <fieldset class="campo campo-anios">
+          <legend>Año de publicación</legend>
+          <div class="rango-anios">
+            <input v-model.number="anioDesde" type="number" inputmode="numeric" placeholder="Desde" aria-label="Año desde" />
+            <span aria-hidden="true">–</span>
+            <input v-model.number="anioHasta" type="number" inputmode="numeric" placeholder="Hasta" aria-label="Año hasta" />
+          </div>
+        </fieldset>
+      </div>
+
+      <!-- Resultado y filtros en uso: lo elegido siempre queda a la vista -->
+      <div class="resumen-filtros">
+        <p class="contador-resultados" role="status">
+          <strong>{{ librosFiltrados.length }}</strong> de {{ libros.length }} libros
+        </p>
+        <ul v-if="filtrosActivos.length" class="chips-activos" aria-label="Filtros activos">
+          <li v-for="filtro in filtrosActivos" :key="filtro.clave">
+            <button
+              type="button"
+              class="chip-activo"
+              :aria-label="`Quitar filtro ${filtro.texto}`"
+              @click="filtro.quitar()"
+            >
+              {{ filtro.texto }} <span aria-hidden="true">✕</span>
+            </button>
+          </li>
+        </ul>
+        <button
+          v-if="filtrosActivos.length > 1"
+          type="button"
+          class="btn-limpiar"
+          @click="limpiarFiltros"
+        >
+          Limpiar todo
+        </button>
       </div>
 
       <!-- Grilla de libros -->
-      <p v-if="librosFiltrados.length === 0" class="estado" role="status">No se encontraron libros.</p>
+      <div v-if="librosFiltrados.length === 0" class="estado" role="status">
+        <p>No se encontraron libros con esa búsqueda.</p>
+        <button type="button" @click="limpiarFiltros">Limpiar búsqueda y filtros</button>
+      </div>
 
       <div v-else class="grilla">
         <LibroCard
@@ -178,11 +289,10 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.filtros {
+.barra-busqueda {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .campo {
@@ -195,22 +305,138 @@ onMounted(() => {
 }
 
 .campo-busqueda {
-  flex: 1 1 100%;
+  flex: 1;
 }
 
-.campo-genero,
-.campo-editorial {
-  flex: 1 1 200px;
+.campo-busqueda input {
+  width: 100%;
 }
 
-.campo-estrellas,
-.campo-paginas,
-.campo-idioma {
-  flex: 1 1 140px;
+.btn-filtros {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--color-surface-alt);
+  border: 1px solid var(--color-border-light);
+  color: var(--color-text);
 }
 
-.campo-anio {
-  flex: 0 1 120px;
+.btn-filtros:hover,
+.btn-filtros.activo {
+  background-color: var(--color-border);
+  border-color: var(--color-accent);
+}
+
+.contador-filtros {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: var(--radio-pill);
+  background-color: var(--color-accent);
+  color: var(--color-bg-deep);
+  font-size: 0.75rem;
+  line-height: 20px;
+  text-align: center;
+}
+
+.flecha {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.panel-filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
+  gap: 14px;
+  margin-bottom: 12px;
+  padding: 16px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radio);
+}
+
+.panel-filtros select {
+  width: 100%;
+}
+
+/* El rango de años ocupa dos columnas: desde y hasta quedan juntos */
+.campo-anios {
+  grid-column: span 2;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.campo-anios legend {
+  padding: 0;
+  margin-bottom: 6px;
+}
+
+.rango-anios {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rango-anios input {
+  flex: 1;
+  width: 100%;
+}
+
+.resumen-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 20px;
+}
+
+.contador-resultados {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.contador-resultados strong {
+  color: var(--color-text);
+}
+
+.chips-activos {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+}
+
+.chip-activo {
+  min-height: 30px;
+  padding: 2px 10px;
+  border-radius: var(--radio-pill);
+  background-color: color-mix(in srgb, var(--color-accent) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 50%, transparent);
+  color: var(--color-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.chip-activo:hover {
+  background-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
+.btn-limpiar {
+  min-height: 30px;
+  padding: 2px 6px;
+  background: none;
+  color: var(--color-accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.btn-limpiar:hover {
+  background: none;
+  color: var(--color-accent-light);
 }
 
 .grilla {
@@ -223,18 +449,10 @@ p {
   color: var(--color-text-muted);
 }
 
-@media (max-width: 600px) {
-  .filtros {
-    flex-direction: column;
-  }
-
-  .campo-genero,
-  .campo-estrellas,
-  .campo-paginas,
-  .campo-editorial,
-  .campo-idioma,
-  .campo-anio {
-    flex: auto;
+/* En celular, el rango de años no necesita dos columnas */
+@media (max-width: 480px) {
+  .campo-anios {
+    grid-column: auto;
   }
 }
 </style>

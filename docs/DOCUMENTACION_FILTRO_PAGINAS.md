@@ -4,7 +4,7 @@
 Agregar al buscador del listado un filtro para **buscar por cantidad de páginas**.
 
 ## 🖥️ Qué ve el usuario
-En **Listado** (`/#/libros`), al lado de "Estrellas", hay un selector **Páginas**:
+En **Listado** (`/#/libros`), dentro del panel **Filtros**, hay un selector **Páginas**:
 
 | Opción | Muestra |
 |---|---|

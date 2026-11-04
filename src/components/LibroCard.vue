@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { BibliotecaService, cambiosStock } from "../services/bibliotecaService.js";
+import { BibliotecaService, ORIGEN_ARGENTINA, cambiosStock } from "../services/bibliotecaService.js";
 import { useAuthStore } from "../stores/authStore.js";
 
 // obtenemos el store de autenticación (Pinia)
@@ -18,6 +18,8 @@ const route = useRoute();
 // Variables reactivas
 const disponibilidad = ref([]);
 const sucursalesConStock = computed(() => disponibilidad.value.filter(item => item.cantidad > 0));
+// Sin ejemplares en ninguna sucursal: la tarjeta muestra un aviso en lugar de las acciones
+const agotado = computed(() => disponibilidad.value.length > 0 && sucursalesConStock.value.length === 0);
 const sucursalSeleccionada = ref("");
 const mensajeExito = ref("");
 const mensajeError = ref("");
@@ -118,6 +120,9 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
 
     <!-- Metadatos rápidos en el catálogo (páginas, año, puntaje de la crítica) -->
     <div v-if="mostrarDetalle" class="metadatos-preview">
+      <span v-if="libro.origen === ORIGEN_ARGENTINA" class="meta-chip chip-origen" title="Autor argentino">
+        📍 {{ ORIGEN_ARGENTINA }}
+      </span>
       <span class="meta-chip chip-paginas" :title="`Cantidad de páginas: ${libro.paginas}`">
         📄 {{ libro.paginas }} págs.
       </span>
@@ -168,7 +173,11 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
     </RouterLink>
 
     <!-- Disponibilidad por sucursal -->
-    <div class="disponibilidad">
+    <div v-if="agotado" class="aviso-agotado" role="status">
+      <strong>📕 Agotado en todas las sucursales</strong>
+      <span>Por ahora no se puede retirar. Va a estar disponible cuando alguien lo devuelva.</span>
+    </div>
+    <div v-else class="disponibilidad">
       <p><strong>Disponibilidad:</strong></p>
       <ul>
         <li v-for="item in disponibilidad" :key="item.sucursal.id">
@@ -185,11 +194,11 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
       <p>Estado: <strong>leyendo</strong> • Retirado en {{ prestamoDelLibro.sucursal }}</p>
       <button @click="devolver">Devolver y terminar</button>
     </div>
-    <div v-else class="acciones">
+    <div v-else-if="!agotado" class="acciones">
       <label class="campo-sucursal">
         <span>Sucursal</span>
-        <select v-model="sucursalSeleccionada" :disabled="sucursalesConStock.length === 0">
-          <option value="" disabled>{{ sucursalesConStock.length ? 'Elegir sucursal...' : 'Sin sucursales con stock' }}</option>
+        <select v-model="sucursalSeleccionada">
+          <option value="" disabled>Elegir sucursal...</option>
           <option
             v-for="item in sucursalesConStock"
             :key="item.sucursal.id"
@@ -200,7 +209,7 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
         </select>
       </label>
 
-      <button :disabled="sucursalesConStock.length === 0" @click="solicitar">Retirar libro</button>
+      <button @click="solicitar">Retirar libro</button>
     </div>
 
     <!-- Mensajes al usuario -->
@@ -345,6 +354,23 @@ h2 {
   margin: 0 0 6px 0;
 }
 
+.aviso-agotado {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: var(--radio-chico);
+  border: 1px dashed color-mix(in srgb, var(--color-danger) 60%, transparent);
+  background-color: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.aviso-agotado strong {
+  color: var(--color-text);
+}
+
 .disponibilidad ul {
   margin: 0;
   padding-left: 20px;
@@ -422,6 +448,13 @@ select {
   border: 1px solid var(--color-border-hover);
   color: var(--color-text);
   font-weight: 500;
+}
+
+.chip-origen {
+  background-color: color-mix(in srgb, var(--color-accent) 15%, transparent);
+  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+  color: var(--color-accent);
+  font-weight: 600;
 }
 
 .chip-puntaje {
