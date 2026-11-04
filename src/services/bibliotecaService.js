@@ -84,6 +84,17 @@ function normalizar(texto) {
   return texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 }
 
+function puntuarPreferencias(libro, preferencias) {
+  const coincideGenero = normalizar(libro.genero) === normalizar(preferencias.genero);
+  const coincideIdioma = normalizar(libro.idioma) === normalizar(preferencias.idioma);
+  const anio = libro.anioPublicacion;
+  const coincideAnio = typeof anio === "number" &&
+    anio >= preferencias.anioDesde &&
+    anio <= preferencias.anioHasta;
+
+  return Number(coincideGenero) + Number(coincideIdioma) + Number(coincideAnio);
+}
+
 // Lista de libros que se llenará con el fetch a OpenLibrary
 let libros = [];
 let catalogoCargado = false;
@@ -368,6 +379,27 @@ export const BibliotecaService = {
       return coincideTexto && coincideGenero && coincideEstrellas && coincidePaginas &&
         coincideEditorial && coincideIdioma && coincideOrigen && coincideAnio;
     });
+  },
+
+  /**
+   * Ordena los libros por la cantidad de preferencias que cumplen.
+   * Los empates conservan el orden original del catálogo.
+   */
+  ordenarPorPreferencias(listaLibros, preferencias) {
+    return listaLibros
+      .map((libro, indice) => {
+        return {
+          libro,
+          indice,
+          puntaje: puntuarPreferencias(libro, preferencias)
+        };
+      })
+      .sort((a, b) => b.puntaje - a.puntaje || a.indice - b.indice)
+      .map(({ libro }) => libro);
+  },
+
+  puntuarPreferencias(libro, preferencias) {
+    return puntuarPreferencias(libro, preferencias);
   },
 
   /**

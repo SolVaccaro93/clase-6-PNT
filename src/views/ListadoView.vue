@@ -3,9 +3,46 @@ import { ref, computed, onMounted } from "vue";
 import { BibliotecaService, ORIGEN_ARGENTINA, ORIGEN_OTROS } from "../services/bibliotecaService.js";
 import LibroCard from "../components/LibroCard.vue";
 
+const CLAVE_PREFERENCIAS_QUIZ = "biblioteca_preferencias_lectura";
+const ANIO_ACTUAL = new Date().getFullYear();
+
 const busqueda = ref("");
 const generoSeleccionado = ref("Todos");
 const generos = ref(["Todos"]);
+const idiomasQuiz = ref([]);
+const errorQuiz = ref("");
+const preferencias = ref(leerPreferencias());
+const quizAbierto = ref(!preferencias.value);
+const generoQuiz = ref(preferencias.value?.genero || "");
+const idiomaQuiz = ref(preferencias.value?.idioma || "");
+const anioDesdeQuiz = ref(preferencias.value?.anioDesde ?? 1950);
+const anioHastaQuiz = ref(preferencias.value?.anioHasta ?? 2000);
+
+function leerPreferencias() {
+  try {
+    const guardadas = localStorage.getItem(CLAVE_PREFERENCIAS_QUIZ);
+    if (!guardadas) return null;
+
+    const preferenciasGuardadas = JSON.parse(guardadas);
+    const { genero, idioma, anioDesde, anioHasta } = preferenciasGuardadas;
+    if (
+      typeof genero === "string" &&
+      typeof idioma === "string" &&
+      Number.isInteger(anioDesde) &&
+      Number.isInteger(anioHasta) &&
+      anioDesde >= 0 &&
+      anioDesde <= anioHasta &&
+      anioHasta <= ANIO_ACTUAL
+    ) {
+      return preferenciasGuardadas;
+    }
+
+    return null;
+  } catch {
+    errorQuiz.value = "No se pudieron leer tus gustos guardados. Completá el quiz nuevamente.";
+    return null;
+  }
+}
 
 // Requerimiento: Buscar por cantidad de estrellas - Sol
 const estrellasMinimas = ref(0);
@@ -53,6 +90,22 @@ async function cargarLibros() {
     generos.value = ["Todos", ...BibliotecaService.getGeneros()];
     editoriales.value = ["Todas", ...BibliotecaService.getEditoriales()];
     idiomas.value = ["Todos", ...BibliotecaService.getIdiomas()];
+    idiomasQuiz.value = BibliotecaService.getIdiomas();
+
+    if (!generoQuiz.value || !generos.value.includes(generoQuiz.value)) {
+      generoQuiz.value = generos.value[1] || "";
+    }
+    if (!idiomaQuiz.value || !idiomasQuiz.value.includes(idiomaQuiz.value)) {
+      idiomaQuiz.value = idiomasQuiz.value[0] || "";
+    }
+
+    if (preferencias.value &&
+      (!generos.value.includes(preferencias.value.genero) ||
+       !idiomasQuiz.value.includes(preferencias.value.idioma))) {
+      preferencias.value = null;
+      quizAbierto.value = true;
+      errorQuiz.value = "Actualizamos el catálogo. Revisá tus gustos para ver recomendaciones.";
+    }
   } catch (e) {
     error.value = e.message || "Error al conectar con la API de OpenLibrary.";
   } finally {
@@ -78,6 +131,52 @@ const librosFiltrados = computed(() => {
     }
   );
 });
+
+const librosRecomendados = computed(() =>
+  preferencias.value
+    ? BibliotecaService.ordenarPorPreferencias(librosFiltrados.value, preferencias.value)
+    : []
+);
+const coincidenciasCompletas = computed(() => {
+  if (!preferencias.value) return 0;
+  return librosRecomendados.value.filter((libro) =>
+    BibliotecaService.puntuarPreferencias(libro, preferencias.value) === 3
+  ).length;
+});
+
+function guardarPreferencias() {
+  errorQuiz.value = "";
+  if (!generoQuiz.value || !idiomaQuiz.value) {
+    errorQuiz.value = "No hay suficientes datos del catálogo para completar el quiz.";
+    return;
+  }
+
+  if (
+    !Number.isInteger(anioDesdeQuiz.value) ||
+    !Number.isInteger(anioHastaQuiz.value) ||
+    anioDesdeQuiz.value < 0 ||
+    anioHastaQuiz.value > ANIO_ACTUAL ||
+    anioDesdeQuiz.value > anioHastaQuiz.value
+  ) {
+    errorQuiz.value = `Ingresá un rango válido entre 0 y ${ANIO_ACTUAL}.`;
+    return;
+  }
+
+  const respuestas = {
+    genero: generoQuiz.value,
+    idioma: idiomaQuiz.value,
+    anioDesde: anioDesdeQuiz.value,
+    anioHasta: anioHastaQuiz.value
+  };
+  preferencias.value = respuestas;
+  quizAbierto.value = false;
+
+  try {
+    localStorage.setItem(CLAVE_PREFERENCIAS_QUIZ, JSON.stringify(respuestas));
+  } catch {
+    errorQuiz.value = "Tus recomendaciones están listas, pero no se pudieron guardar para la próxima visita.";
+  }
+}
 
 // ---- Panel de filtros: se despliega con un botón para no ocupar toda la pantalla ----
 const panelAbierto = ref(false);
@@ -152,6 +251,66 @@ onMounted(() => {
 
     <!-- Contenido principal -->
     <div v-else>
+      <form v-if="quizAbierto" class="quiz-preferencias" @submit.prevent="guardarPreferencias">
+        <div class="quiz-encabezado">
+          <div>
+            <p class="quiz-etiqueta">RECOMENDACIONES PERSONALIZADAS</p>
+            <h3>Encontrá tu próxima lectura</h3>
+            <p>Respondé estas tres preguntas y ordenamos primero los libros que más se parecen a tus gustos.</p>
+          </div>
+        </div>
+
+        <div class="preguntas-quiz">
+          <label class="campo">
+            <span>1. ¿Qué género te gusta más?</span>
+            <select v-model="generoQuiz" required>
+              <option v-for="genero in generos.slice(1)" :key="genero" :value="genero">
+                {{ genero }}
+              </option>
+            </select>
+          </label>
+
+          <label class="campo">
+            <span>2. ¿En qué idioma preferís leer?</span>
+            <select v-model="idiomaQuiz" required>
+              <option v-for="idioma in idiomasQuiz" :key="idioma" :value="idioma">
+                {{ idioma }}
+              </option>
+            </select>
+          </label>
+
+          <fieldset class="campo campo-anios-quiz">
+            <legend>3. ¿De qué época te interesan los libros?</legend>
+            <div class="rango-anios">
+              <label>
+                <span class="sr-only">Año desde</span>
+                <input v-model.number="anioDesdeQuiz" type="number" min="0" :max="ANIO_ACTUAL" required />
+              </label>
+              <span aria-hidden="true">a</span>
+              <label>
+                <span class="sr-only">Año hasta</span>
+                <input v-model.number="anioHastaQuiz" type="number" min="0" :max="ANIO_ACTUAL" required />
+              </label>
+            </div>
+          </fieldset>
+        </div>
+
+        <p v-if="errorQuiz" class="error-quiz" role="alert">{{ errorQuiz }}</p>
+        <button type="submit" class="btn-recomendar">Ver mis recomendaciones</button>
+      </form>
+
+      <div v-if="preferencias && !quizAbierto" class="resumen-quiz">
+        <p>
+          Recomendaciones para <strong>{{ preferencias.genero }}</strong>,
+          en <strong>{{ preferencias.idioma }}</strong>, entre
+          <strong>{{ preferencias.anioDesde }} y {{ preferencias.anioHasta }}</strong>.
+        </p>
+        <button type="button" class="btn-cambiar-quiz" @click="quizAbierto = true">
+          Cambiar gustos
+        </button>
+      </div>
+
+      <template v-if="preferencias">
       <!-- Filtros de búsqueda (tarea de Patricio) -->
       <div class="barra-busqueda">
         <label class="campo campo-busqueda">
@@ -247,7 +406,8 @@ onMounted(() => {
       <!-- Resultado y filtros en uso: lo elegido siempre queda a la vista -->
       <div class="resumen-filtros">
         <p class="contador-resultados" role="status">
-          <strong>{{ librosFiltrados.length }}</strong> de {{ libros.length }} libros
+          <strong>{{ librosRecomendados.length }}</strong> de {{ libros.length }} libros
+          · {{ coincidenciasCompletas }} coincidencias con tus tres respuestas
         </p>
         <ul v-if="filtrosActivos.length" class="chips-activos" aria-label="Filtros activos">
           <li v-for="filtro in filtrosActivos" :key="filtro.clave">
@@ -279,11 +439,12 @@ onMounted(() => {
 
       <div v-else class="grilla">
         <LibroCard
-          v-for="libro in librosFiltrados"
+          v-for="libro in librosRecomendados"
           :key="libro.id"
           :libro="libro"
         />
       </div>
+      </template>
     </div>
   </section>
 </template>
@@ -353,6 +514,106 @@ onMounted(() => {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radio);
+}
+
+.quiz-preferencias {
+  margin-bottom: 24px;
+  padding: clamp(18px, 3vw, 28px);
+  background:
+    radial-gradient(circle at 100% 0, color-mix(in srgb, var(--color-accent) 15%, transparent), transparent 40%),
+    var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radio-grande);
+  box-shadow: var(--sombra);
+}
+
+.quiz-encabezado h3 {
+  margin: 0 0 6px;
+  color: var(--color-text);
+  font-size: 1.4rem;
+}
+
+.quiz-encabezado p {
+  margin: 0;
+}
+
+.quiz-encabezado .quiz-etiqueta {
+  margin-bottom: 6px;
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.preguntas-quiz {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 16px;
+  margin: 22px 0;
+}
+
+.campo-anios-quiz {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.campo-anios-quiz legend {
+  margin-bottom: 6px;
+  padding: 0;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.campo-anios-quiz .rango-anios label {
+  flex: 1;
+}
+
+.campo-anios-quiz input {
+  width: 100%;
+}
+
+.btn-recomendar {
+  background-color: var(--color-accent);
+  color: var(--color-bg-deep);
+}
+
+.btn-recomendar:hover {
+  background-color: var(--color-accent-light);
+}
+
+.error-quiz {
+  margin: 0 0 12px;
+  color: var(--color-danger-soft);
+}
+
+.resumen-quiz {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 18px;
+  padding: 12px 16px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radio);
+}
+
+.resumen-quiz p {
+  margin: 0;
+}
+
+.btn-cambiar-quiz {
+  min-height: 36px;
+  padding: 5px 10px;
+  background: none;
+  border: 1px solid var(--color-border-light);
+  color: var(--color-accent);
+}
+
+.btn-cambiar-quiz:hover {
+  background-color: var(--color-surface-alt);
 }
 
 .panel-filtros select {
