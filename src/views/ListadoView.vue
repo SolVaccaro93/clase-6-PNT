@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { BibliotecaService, ORIGEN_ARGENTINA, ORIGEN_OTROS } from "../services/bibliotecaService.js";
-import LibroCard from "../components/LibroCard.vue";
+import GrillaLibros from "../components/GrillaLibros.vue";
 
 const busqueda = ref("");
 const generoSeleccionado = ref("Todos");
@@ -277,13 +277,7 @@ onMounted(() => {
         <button type="button" @click="limpiarFiltros">Limpiar búsqueda y filtros</button>
       </div>
 
-      <div v-else class="grilla">
-        <LibroCard
-          v-for="libro in librosFiltrados"
-          :key="libro.id"
-          :libro="libro"
-        />
-      </div>
+      <GrillaLibros v-else :libros="librosFiltrados" />
     </div>
   </section>
 </template>
@@ -437,12 +431,6 @@ onMounted(() => {
 .btn-limpiar:hover {
   background: none;
   color: var(--color-accent-light);
-}
-
-.grilla {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
-  gap: 16px;
 }
 
 p {

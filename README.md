@@ -93,4 +93,5 @@ El detalle de cada funcionalidad está en la carpeta `docs/`:
 | Filtro por cantidad de páginas | `docs/DOCUMENTACION_FILTRO_PAGINAS.md` |
 | Libros argentinos y filtro por origen | `docs/DOCUMENTACION_ORIGEN_LIBROS.md` |
 | Panel de filtros y libros sin stock | `docs/DOCUMENTACION_FILTROS_Y_SIN_STOCK.md` |
+| Grilla de libros en rombos | `docs/DOCUMENTACION_GRILLA_LIBROS.md` |
 | Autenticación con Pinia | `docs/DOCUMENTACION_AUTH_PINIA.md` |
