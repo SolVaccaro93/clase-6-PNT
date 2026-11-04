@@ -173,14 +173,11 @@ export const BibliotecaService = {
     ].join(",");
     // Una búsqueda por autor, en paralelo. Se ordena por cantidad de ediciones para
     // quedarse con las obras conocidas y no con antologías o estudios sobre el autor.
-    const resultados = await Promise.allSettled(
+    const [resultados, docsArgentinos] = await Promise.all([Promise.allSettled(
       AUTORES_CATALOGO.map(async (autor) => {
         const URL = `https://openlibrary.org/search.json?author=${encodeURIComponent(autor.nombre)}` +
           `&language=spa&sort=editions&limit=10&fields=${campos}`;
-        const [respuesta, docsArgentinos] = await Promise.all([
-      fetch(URL),
-      buscarDocsArgentinos(campos)
-    ]);
+        const respuesta = await fetch(URL);
         if (!respuesta.ok) throw new Error(`Error ${respuesta.status}`);
         const data = await respuesta.json();
         return (data.docs || [])
@@ -190,14 +187,24 @@ export const BibliotecaService = {
           .slice(0, OBRAS_POR_AUTOR)
           .map((doc) => ({ ...doc, pais: autor.pais }));
       })
-    );
+    ), buscarDocsArgentinos(campos)]);
 
     if (resultados.every((r) => r.status === "rejected")) {
       throw new Error("No se pudieron obtener los libros.");
     }
 
-    const data = await respuesta.json();
-    const docs = data.docs || [];
+    // Sin repetidos (misma obra o mismo título). Los argentinos extra van al final.
+    const vistos = new Set();
+    const docs = [
+      ...resultados.flatMap((r) => (r.status === "fulfilled" ? r.value : [])),
+      ...docsArgentinos.map((doc) => ({ ...doc, pais: ORIGEN_ARGENTINA }))
+    ].filter((doc) => {
+      const titulo = normalizar(doc.title);
+      if (vistos.has(doc.key) || vistos.has(titulo)) return false;
+      vistos.add(doc.key);
+      vistos.add(titulo);
+      return true;
+    });
 
     const generosEjemplo = ["Novela", "Ficción", "Clásico", "Drama", "Aventura"];
     const mapaIdiomas = {
