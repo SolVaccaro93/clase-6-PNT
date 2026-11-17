@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { BibliotecaService, GENEROS_QUIZ, IDIOMAS_QUIZ } from "../services/bibliotecaService.js";
 import { registrarBusqueda } from "../services/eventosService.js";
 import { useAuthStore } from "../stores/authStore.js";
+import { guardarEnServidor } from "../services/apiClient.js";
 import GrillaLibros from "../components/GrillaLibros.vue";
 
 const CLAVE_PREFERENCIAS_QUIZ = "biblioteca_preferencias_lectura";
@@ -144,6 +145,7 @@ function guardarPreferencias() {
   quizAbierto.value = false;
   cargarLibros();
 
+  guardarEnServidor("/preferencias", { method: "PUT", body: respuestas });
   try {
     localStorage.setItem(CLAVE_PREFERENCIAS_QUIZ, JSON.stringify(respuestas));
   } catch {

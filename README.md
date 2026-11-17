@@ -107,3 +107,15 @@ El detalle de cada funcionalidad está en la carpeta `docs/`:
 | Perfil del dueño y métricas | `docs/DOCUMENTACION_METRICAS_DUENO.md` |
 | Grilla de libros en rombos | `docs/DOCUMENTACION_GRILLA_LIBROS.md` |
 | Autenticación con Pinia | `docs/DOCUMENTACION_AUTH_PINIA.md` |
+
+
+## Persistencia con SQL Server
+
+Los usuarios, las sesiones, los gustos del cuestionario, los libros vistos, los votos, los préstamos y el stock se guardan en SQL Server (localhost).
+
+1. Abrí `server/sql/schema.sql` en SQL Server Management Studio y ejecutalo. Crea la base `BibliotecaDB` y las tablas.
+2. Copiá `.env.example` a `.env` y completá `DB_USER` y `DB_PASSWORD` (login SQL habilitado). Si usás una instancia con nombre, descomentá `DB_INSTANCE`.
+3. Levantá el backend con `npm run server`. Al arrancar crea los usuarios `lector` / `123` y `admin` / `admin`, con la clave hasheada.
+4. En otra terminal, `npm run dev`. Vite redirige `/api` al backend (puerto 3001).
+
+La sesión es una fila de la tabla `Sesiones` (token con vencimiento de 7 días). El navegador solo guarda el token.

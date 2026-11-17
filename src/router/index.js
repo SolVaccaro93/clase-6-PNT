@@ -59,10 +59,12 @@ const router = createRouter({
 // - to: ruta a la que intenta ir el usuario
 // - from: ruta desde donde viene
 // - next: función que autoriza o desvía la navegación
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   // El store se pide ADENTRO del guardia (no arriba del archivo): así se
   // ejecuta recién cuando navegamos, que es cuando Pinia ya está instalada.
   const authStore = useAuthStore();
+  // Valida el token contra la tabla Sesiones antes de decidir los redirects (una sola vez)
+  await authStore.restaurarSesion();
 
   // Rutas que exigen sesión iniciada (getter: sin paréntesis)
   if (to.meta.requiresAuth && !authStore.estaAutenticado) {

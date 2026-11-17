@@ -20,8 +20,8 @@ const ROLES = {
 };
 const rolActual = computed(() => ROLES[usuario.value?.rol] || ROLES.visita);
 
-function cerrarSesion() {
-  authStore.logout();
+async function cerrarSesion() {
+  await authStore.logout();
   router.push({ name: "inicio" });
 }
 </script>

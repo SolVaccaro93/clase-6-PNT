@@ -4,6 +4,7 @@
 
 import { ref } from "vue";
 import { useAuthStore } from "../stores/authStore.js";
+import { api, alHidratar, guardarEnServidor } from "./apiClient.js";
 import { useVotosStore } from "../stores/votosStore.js";
 
 const CLAVE_PREFERENCIAS_QUIZ = "biblioteca_preferencias_lectura";
@@ -25,6 +26,19 @@ function guardar(prestamos, stock) {
   localStorage.setItem(CLAVE_PRESTAMOS, JSON.stringify(siguientes));
   datos = siguientes;
 }
+
+// Con sesión, los préstamos del usuario, el stock y sus gustos se leen de SQL Server.
+alHidratar(async () => {
+  const remoto = await api("/datos");
+  datos = { prestamos: remoto.prestamos, stock: remoto.stock };
+  const prefs = await api("/preferencias");
+  try {
+    if (prefs) localStorage.setItem(CLAVE_PREFERENCIAS_QUIZ, JSON.stringify(prefs));
+  } catch { /* la copia local es opcional */ }
+  if (libros.length) inicializarStockParaLibros(libros);
+  cambiosStock.value++;
+  cambiosPrestamos.value++;
+});
 
 //función usuarioActual()
 function usuarioActual() {
@@ -461,6 +475,9 @@ obtenerPrestamos(idUsuario = useAuthStore().usuario?.usuario) {
     stockLibro.set(idSucursalNum, stockActual - 1);
     cambiosStock.value++;
     cambiosPrestamos.value++;
+    guardarEnServidor("/prestamos", { method: "PUT", body: {
+      prestamo, stock: { clave: libro.clave, sucursal: idSucursalNum, cantidad: stockActual - 1 }
+    } });
 
     return { ...prestamo };
   },
@@ -482,6 +499,10 @@ obtenerPrestamos(idUsuario = useAuthStore().usuario?.usuario) {
     stockLibro?.set(prestamo.id_sucursal, actual + 1);
     cambiosStock.value++;
     cambiosPrestamos.value++;
+    guardarEnServidor("/prestamos", { method: "PUT", body: {
+      prestamo: terminado,
+      stock: { clave: prestamo.clave_libro, sucursal: prestamo.id_sucursal, cantidad: actual + 1 }
+    } });
 
     return { ...terminado };
   },
@@ -529,6 +550,7 @@ obtenerPrestamos(idUsuario = useAuthStore().usuario?.usuario) {
     });
     stockLibro.set(Number(sucursalId), nuevo);
     cambiosStock.value++;
+    guardarEnServidor("/stock", { method: "PUT", body: { clave: libro.clave, sucursal: Number(sucursalId), cantidad: nuevo } });
     return nuevo;
   }
 };

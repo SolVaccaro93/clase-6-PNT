@@ -2,6 +2,13 @@ import { setActivePinia, createPinia } from "pinia";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
+// Simula una sesión ya iniciada (el login real va contra el servidor y la base).
+const USUARIOS_TEST = {
+  lector: { usuario: "lector", nombre: "Sol Vaccaro", rol: "visita" },
+  admin: { usuario: "admin", nombre: "Matías Gratz", rol: "admin" }
+};
+const iniciar = (auth, u) => { auth.usuario = USUARIOS_TEST[u]; };
+
 // localStorage de mentira que SÍ guarda (para probar la persistencia)
 const memoria = new Map();
 globalThis.localStorage = {
@@ -30,19 +37,19 @@ test("sin sesión no se puede votar", () => {
 
 test("lector y admin votan y el promedio se actualiza", () => {
   const { auth, votos } = arrancar();
-  auth.login("lector", "123");
+  iniciar(auth, "lector");
   votos.votar(libro.clave, 5);
   assert.deepEqual(votos.resumenDe(libro), { promedio: 4.1, cantidad: 1 });
 
   auth.logout();
-  auth.login("admin", "admin");
+  iniciar(auth, "admin");
   votos.votar(libro.clave, 4.5);
   assert.deepEqual(votos.resumenDe(libro), { promedio: 4.2, cantidad: 2 });
 });
 
 test("cada usuario tiene un voto por libro y puede cambiarlo", () => {
   const { auth, votos } = arrancar();
-  auth.login("lector", "123");
+  iniciar(auth, "lector");
   votos.votar(libro.clave, 5);
   votos.votar(libro.clave, 3);
   assert.deepEqual(votos.resumenDe(libro), { promedio: 3.6, cantidad: 1 });
@@ -52,20 +59,20 @@ test("cada usuario tiene un voto por libro y puede cambiarlo", () => {
 test("miVoto devuelve null sin sesión o sin voto", () => {
   const { auth, votos } = arrancar();
   assert.equal(votos.miVoto(libro.clave), null);
-  auth.login("lector", "123");
+  iniciar(auth, "lector");
   assert.equal(votos.miVoto(libro.clave), null);
 });
 
 test("rechaza puntajes inválidos", () => {
   const { auth, votos } = arrancar();
-  auth.login("lector", "123");
+  iniciar(auth, "lector");
   [0, 5.5, 3.3, "4", NaN].forEach((p) => assert.throws(() => votos.votar(libro.clave, p), /media estrella/));
   assert.equal(votos.resumenDe(libro).cantidad, 0);
 });
 
 test("los votos sobreviven a una recarga (se leen de localStorage)", () => {
   const { auth, votos } = arrancar();
-  auth.login("lector", "123");
+  iniciar(auth, "lector");
   votos.votar(libro.clave, 5);
   assert.deepEqual(JSON.parse(memoria.get(CLAVE_VOTOS)), { "/works/A": { lector: 5 } });
 
@@ -86,13 +93,13 @@ test("si el localStorage tiene basura, la app no se rompe", () => {
 
 test("solo el admin puede reiniciar los votos", () => {
   const { auth, votos } = arrancar();
-  auth.login("lector", "123");
+  iniciar(auth, "lector");
   votos.votar(libro.clave, 5);
   assert.throws(() => votos.reiniciar(), /administrador/);
   assert.equal(votos.resumenDe(libro).cantidad, 1);
 
   auth.logout();
-  auth.login("admin", "admin");
+  iniciar(auth, "admin");
   votos.reiniciar();
   assert.deepEqual(votos.resumenDe(libro), { promedio: 3.8, cantidad: 0 });
   assert.equal(memoria.get(CLAVE_VOTOS), "{}");
@@ -101,7 +108,7 @@ test("solo el admin puede reiniciar los votos", () => {
 test("el puntaje vigente es el que usa el filtro de estrellas", () => {
   const { auth, votos } = arrancar();
   assert.equal(votos.puntajeVigente(libro) >= 4, false); // 3,8 todavía no llega a 4
-  auth.login("lector", "123");
+  iniciar(auth, "lector");
   votos.votar(libro.clave, 5);
   assert.equal(votos.puntajeVigente(libro) >= 4, true); // 4,1 ya entra en "4 o más"
 });

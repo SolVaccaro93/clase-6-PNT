@@ -2,6 +2,13 @@ import { setActivePinia, createPinia } from "pinia";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
+// Simula una sesión ya iniciada (el login real va contra el servidor y la base).
+const USUARIOS_TEST = {
+  lector: { usuario: "lector", nombre: "Sol Vaccaro", rol: "visita" },
+  admin: { usuario: "admin", nombre: "Matías Gratz", rol: "admin" }
+};
+const iniciar = (auth, u) => { auth.usuario = USUARIOS_TEST[u]; };
+
 test("retiro y devolución mantienen stock, usuario, estados y persistencia", async () => {
   const storage = new Map();
   globalThis.localStorage = {
@@ -21,7 +28,7 @@ test("retiro y devolución mantienen stock, usuario, estados y persistencia", as
   const cantidad = () => biblioteca.consultarDisponibilidad(2)[0].cantidad;
   const original = cantidad();
   assert.throws(() => biblioteca.retirar(2, 1), /sesión/);
-  authStore.login("lector", "123");
+  iniciar(authStore, "lector");
   assert.throws(() => biblioteca.retirar(99, 1), /no existen/);
   assert.throws(() => biblioteca.retirar(2, 99), /no existen/);
   assert.throws(() => biblioteca.retirar(1, 1), /stock/);
@@ -50,10 +57,10 @@ test("retiro y devolución mantienen stock, usuario, estados y persistencia", as
   assert.equal(biblioteca.obtenerPrestamosActivos().length, 1);
   authStore.logout();
   assert.throws(() => biblioteca.devolver(prestamo.id_prestamo), /sesión/);
-  authStore.login("admin", "admin");
+  iniciar(authStore, "admin");
   assert.equal(biblioteca.obtenerPrestamosActivos().length, 0);
   assert.throws(() => biblioteca.devolver(prestamo.id_prestamo), /tuyo/);
-  authStore.login("lector", "123");
+  iniciar(authStore, "lector");
   const { BibliotecaService: recargada } = await import("../src/services/bibliotecaService.js?recarga");
   // El orden de la API puede cambiar: el stock se identifica por la clave estable.
   globalThis.fetch = async () => ({ ok: true, json: async () => ({ docs: [

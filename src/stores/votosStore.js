@@ -6,6 +6,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { useAuthStore } from "./authStore.js";
+import { api, alHidratar, guardarEnServidor } from "../services/apiClient.js";
 import { calcularPromedio, esPuntajeValido } from "../services/votosCalculo.js";
 
 // Clave de localStorage. Estructura guardada:
@@ -61,6 +62,7 @@ export const useVotosStore = defineStore("votos", () => {
       ...votos.value,
       [claveLibro]: { ...votos.value[claveLibro], [auth.usuario.usuario]: puntaje }
     });
+    guardarEnServidor("/votos", { method: "PUT", body: { claveLibro, puntaje } });
     return puntaje;
   }
 
@@ -87,7 +89,14 @@ export const useVotosStore = defineStore("votos", () => {
   function reiniciar() {
     if (!useAuthStore().esAdmin) throw new Error("Solo un administrador puede reiniciar los votos.");
     guardar({});
+    guardarEnServidor("/votos", { method: "DELETE" });
   }
 
-  return { votos, votar, miVoto, resumenDe, puntajeVigente, reiniciar };
+  // Con sesión, los votos de todos los usuarios se leen de la base.
+  async function cargarDesdeServidor() {
+    votos.value = await api("/votos");
+  }
+  alHidratar(cargarDesdeServidor);
+
+  return { votos, cargarDesdeServidor, votar, miVoto, resumenDe, puntajeVigente, reiniciar };
 });

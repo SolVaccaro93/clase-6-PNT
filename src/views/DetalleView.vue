@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch } from "vue";
 import { BibliotecaService } from "../services/bibliotecaService.js";
+import { guardarEnServidor } from "../services/apiClient.js";
 import LibroCard from "../components/LibroCard.vue";
 import MapaSucursales from "../components/MapaSucursales.vue";
 
@@ -18,6 +19,9 @@ async function cargarDetalle() {
     // También carga el catálogo si se abre directamente la URL del detalle.
     await BibliotecaService.cargarLibros();
     libro.value = BibliotecaService.getLibroPorId(props.id);
+    if (libro.value) {
+      guardarEnServidor("/vistos", { method: "POST", body: { claveLibro: libro.value.clave, titulo: libro.value.titulo } });
+    }
   } catch (e) {
     error.value = e.message || "No se pudo cargar el libro.";
   } finally {

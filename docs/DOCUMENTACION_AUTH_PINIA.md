@@ -226,3 +226,4 @@ En el navegador:
 
 ## 🔭 Qué más podría ir al store
 Aplicando el mismo criterio (¿lo necesitan varios componentes? ¿con qué frecuencia cambia?), se podrían evaluar a futuro los préstamos y el stock de `bibliotecaService`, que hoy usan contadores reactivos (`cambiosStock`, `cambiosPrestamos`) para avisarle a Vue que algo cambió.
+> **Actualización:** el login ya no se resuelve en el navegador. Ahora `login` y `logout` son asíncronos y usan la API con sesiones en SQL Server. Ver `DOCUMENTACION_PERSISTENCIA_SQL_SERVER.md`.

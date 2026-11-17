@@ -15,12 +15,12 @@ const error = ref("");
 // Si vino con redirección previa (ej: /login?redirect=/libros/2)
 const destinoRedireccion = route.query.redirect || "/libros";
 
-function procesarLogin() {
+async function procesarLogin() {
   error.value = "";
   try {
-    authStore.login(username.value, password.value);
+    await authStore.login(username.value, password.value);
     // Redirige al destino previo exacto
-    router.push(destinoRedireccion);
+    await router.push(destinoRedireccion);
   } catch (e) {
     error.value = e.message || "Credenciales inválidas.";
   }
