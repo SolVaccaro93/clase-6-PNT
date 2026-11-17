@@ -36,6 +36,7 @@ Las rutas están definidas en `src/router/index.js` con Vue Router 4:
 | Mis préstamos (requiere sesión) | `/#/prestamos` | `src/views/PrestamosView.vue` |
 | Iniciar sesión | `/#/login` | `src/views/LoginView.vue` |
 | Panel Administrador | `/#/admin` | `src/views/AdminView.vue` |
+| Métricas (solo dueño) | `/#/metricas` | `src/views/MetricasView.vue` |
 
 ## Cuentas de prueba
 
@@ -43,6 +44,7 @@ Para evaluar la aplicación rápidamente desde la pantalla de login:
 
 * **Lector (visita):** `lector` / `123`
 * **Administrador (admin):** `admin` / `admin`
+* **Dueño de la librería (dueño):** `duenolibreria` / `dueno`. Puede hacer todo lo del admin y además ve **Métricas**.
 
 ## Retiro y devolución
 
@@ -102,5 +104,6 @@ El detalle de cada funcionalidad está en la carpeta `docs/`:
 | Filtro por cantidad de páginas | `docs/DOCUMENTACION_FILTRO_PAGINAS.md` |
 | Libros argentinos y filtro por origen | `docs/DOCUMENTACION_ORIGEN_LIBROS.md` |
 | Panel de filtros y libros sin stock | `docs/DOCUMENTACION_FILTROS_Y_SIN_STOCK.md` |
+| Perfil del dueño y métricas | `docs/DOCUMENTACION_METRICAS_DUENO.md` |
 | Grilla de libros en rombos | `docs/DOCUMENTACION_GRILLA_LIBROS.md` |
 | Autenticación con Pinia | `docs/DOCUMENTACION_AUTH_PINIA.md` |

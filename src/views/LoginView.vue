@@ -96,6 +96,13 @@ function entrarComo(usuarioDemo, claveDemo) {
           >
             🛡️ Administrador (admin): <code>admin / admin</code>
           </button>
+          <button
+            type="button"
+            class="btn-demo demo-dueno"
+            @click="entrarComo('duenolibreria', 'dueno')"
+          >
+            📊 Dueño (métricas): <code>duenolibreria / dueno</code>
+          </button>
         </div>
       </div>
     </div>

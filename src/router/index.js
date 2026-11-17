@@ -9,6 +9,7 @@ import NoEncontradoView from "../views/NoEncontradoView.vue";
 import SucursalesView from "../views/SucursalesView.vue";
 import AmigosView from "../views/AmigosView.vue";
 import PrestamosView from "../views/PrestamosView.vue";
+import MetricasView from "../views/MetricasView.vue";
 
 const router = createRouter({
   // El hash permite recargar cualquier pantalla sin configurar el servidor.
@@ -33,6 +34,14 @@ const router = createRouter({
       name: "admin",
       component: AdminView,
       meta: { requiresAdmin: true }
+    },
+
+    // Métricas del negocio: solo el dueño de la librería
+    {
+      path: "/metricas",
+      name: "metricas",
+      component: MetricasView,
+      meta: { requiresDueno: true }
     },
 
     // 4. Ruta comodín para 404:
@@ -63,6 +72,12 @@ router.beforeEach((to, from, next) => {
   // Verificamos si la ruta exige rol de administrador
   if (to.meta.requiresAdmin && !authStore.esAdmin) {
     // Si no es admin, lo mandamos al login guardando la ruta a la que intentaba ir
+    next({ name: "login", query: { redirect: to.fullPath } });
+    return;
+  }
+
+  // Rutas exclusivas del dueño de la librería
+  if (to.meta.requiresDueno && !authStore.esDueno) {
     next({ name: "login", query: { redirect: to.fullPath } });
     return;
   }

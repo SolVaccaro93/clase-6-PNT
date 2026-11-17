@@ -10,6 +10,15 @@ const authStore = useAuthStore();
 // Leemos el usuario reactivo y el rol desde el store de autenticación (Pinia)
 const usuario = computed(() => authStore.usuario);
 const esAdmin = computed(() => authStore.esAdmin); // getter: sin paréntesis
+const esDueno = computed(() => authStore.esDueno);
+
+// Etiqueta y color del rol en el encabezado
+const ROLES = {
+  visita: { texto: "visita", clase: "rol-visita" },
+  admin: { texto: "admin", clase: "rol-admin" },
+  dueno: { texto: "dueño", clase: "rol-dueno" }
+};
+const rolActual = computed(() => ROLES[usuario.value?.rol] || ROLES.visita);
 
 function cerrarSesion() {
   authStore.logout();
@@ -41,8 +50,8 @@ function cerrarSesion() {
           <div v-if="usuario" class="sesion-activa">
             <div class="datos-usuario">
               <span class="nombre-usuario">{{ usuario.nombre }}</span>
-              <span class="badge-rol" :class="usuario.rol === 'admin' ? 'rol-admin' : 'rol-visita'">
-                Rol: {{ usuario.rol }}
+              <span class="badge-rol" :class="rolActual.clase">
+                Rol: {{ rolActual.texto }}
               </span>
             </div>
             <button class="btn-logout" @click="cerrarSesion" title="Cerrar sesión actual">
@@ -69,6 +78,9 @@ function cerrarSesion() {
         <!-- Requerimiento: Panel y permisos diferenciados para administrador - Matías -->
         <RouterLink v-if="esAdmin" :to="{ name: 'admin' }" class="link-admin">
           ⚙️ Panel Admin
+        </RouterLink>
+        <RouterLink v-if="esDueno" :to="{ name: 'metricas' }" class="link-admin">
+          📊 Métricas
         </RouterLink>
       </nav>
     </header>
@@ -237,6 +249,11 @@ h1 {
 .rol-visita {
   background-color: var(--color-primary);
   color: white;
+}
+
+.rol-dueno {
+  background-color: var(--color-gold);
+  color: var(--color-bg-deep);
 }
 
 .btn-logout {

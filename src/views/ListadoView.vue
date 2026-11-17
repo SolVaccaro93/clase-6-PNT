@@ -1,6 +1,8 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { BibliotecaService, ORIGEN_ARGENTINA, ORIGEN_OTROS } from "../services/bibliotecaService.js";
+import { registrarBusqueda } from "../services/eventosService.js";
+import { useAuthStore } from "../stores/authStore.js";
 import GrillaLibros from "../components/GrillaLibros.vue";
 
 const CLAVE_PREFERENCIAS_QUIZ = "biblioteca_preferencias_lectura";
@@ -228,6 +230,25 @@ function limpiarFiltros() {
   filtrosActivos.value.forEach((filtro) => filtro.quitar());
   busqueda.value = "";
 }
+
+// ---- Métricas del dueño: se registra cada búsqueda cuando el usuario deja de escribir ----
+const authStore = useAuthStore();
+const ESPERA_REGISTRO_MS = 1500;
+let temporizadorBusqueda = null;
+
+watch(busqueda, (texto) => {
+  clearTimeout(temporizadorBusqueda);
+  temporizadorBusqueda = setTimeout(() => {
+    registrarBusqueda({
+      texto,
+      // Se cuenta solo por texto: sin resultados = el libro no está en el catálogo
+      resultados: BibliotecaService.buscar(texto).length,
+      usuario: authStore.usuario?.usuario ?? null
+    });
+  }, ESPERA_REGISTRO_MS);
+});
+
+onBeforeUnmount(() => clearTimeout(temporizadorBusqueda));
 
 onMounted(() => {
   cargarLibros();

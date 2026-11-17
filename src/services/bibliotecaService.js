@@ -460,6 +460,12 @@ obtenerPrestamos(idUsuario = useAuthStore().usuario?.usuario) {
     return datos.prestamos.filter((p) => p.id_usuario === idUsuario).map((p) => ({ ...p }));
   },
 
+  // Préstamos de todos los usuarios (para las métricas del dueño). Son copias.
+  obtenerTodosLosPrestamos() {
+    cambiosPrestamos.value;
+    return datos.prestamos.map((p) => ({ ...p }));
+  },
+
   obtenerPrestamosActivos() {
     return this.obtenerPrestamos().filter((p) => p.fecha_devolucion === null);
   },

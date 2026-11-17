@@ -23,6 +23,12 @@ const USUARIOS_PREDEFINIDOS = [
     clave: "admin",
     nombre: "Matías Gratz",
     rol: "admin" // Rol administrador: tiene acceso al panel de gestión
+  },
+  {
+    usuario: "duenolibreria",
+    clave: "dueno",
+    nombre: "Dueño de la librería",
+    rol: "dueno" // Rol dueño: todo lo del admin + métricas del negocio
   }
 ];
 
@@ -45,8 +51,11 @@ export const useAuthStore = defineStore("auth", () => {
 
   // Indica si hay un usuario con sesión iniciada
   const estaAutenticado = computed(() => usuario.value !== null);
-  // Indica si el usuario actual tiene rol de administrador
-  const esAdmin = computed(() => usuario.value?.rol === "admin");
+  // Indica si el usuario actual tiene rol de administrador.
+  // El dueño también cuenta como admin: puede hacer todo lo del panel de gestión.
+  const esAdmin = computed(() => usuario.value?.rol === "admin" || usuario.value?.rol === "dueno");
+  // Indica si el usuario actual es el dueño de la librería (acceso a métricas)
+  const esDueno = computed(() => usuario.value?.rol === "dueno");
 
    // ---------------------------------------------------------------------
   // ACTIONS (antes: métodos login(), logout() y obtenerUsuariosDemo())
@@ -85,5 +94,5 @@ export const useAuthStore = defineStore("auth", () => {
   }
 
     // Todo lo que no se devuelva acá no es accesible desde afuera
-  return { usuario, estaAutenticado, esAdmin, login, logout, obtenerUsuariosDemo };
+  return { usuario, estaAutenticado, esAdmin, esDueno, login, logout, obtenerUsuariosDemo };
 });
