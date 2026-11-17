@@ -4,13 +4,10 @@
 
 import { ref } from "vue";
 import { useAuthStore } from "../stores/authStore.js";
-import { autorArgentinoDe, consultaAutoresArgentinos } from "./autoresArgentinos.js";
 import { useVotosStore } from "../stores/votosStore.js";
 
-export const ORIGEN_ARGENTINA = "Argentina";
-export const ORIGEN_OTROS = "Otros países";
-const MAX_LIBROS_ARGENTINOS = 15;
-const MAX_LIBROS_POR_AUTOR_ARGENTINO = 2;
+const CLAVE_PREFERENCIAS_QUIZ = "biblioteca_preferencias_lectura";
+const LIMITE_LIBROS = 40;
 // Si OpenLibrary no responde, se corta la consulta para mostrar el error en vez de quedar cargando
 const TIEMPO_MAXIMO_CONSULTA_MS = 10000;
 
@@ -52,33 +49,37 @@ export const SUCURSALES = [
 // Contador reactivo: aumenta cada vez que cambia el stock, para que el mapa se actualice.
 export const cambiosStock = ref(0);
 
-// Autores curados: el catálogo se arma con sus obras más editadas en OpenLibrary,
-// así no entran libros cualquiera que devuelva una búsqueda genérica.
-export const AUTORES_CATALOGO = [
-  { nombre: "Jorge Luis Borges", pais: "Argentina" },
-  { nombre: "Julio Cortázar", pais: "Argentina" },
-  { nombre: "Ernesto Sabato", pais: "Argentina" },
-  { nombre: "Adolfo Bioy Casares", pais: "Argentina" },
-  { nombre: "Manuel Puig", pais: "Argentina" },
-  { nombre: "Roberto Arlt", pais: "Argentina" },
-  { nombre: "Silvina Ocampo", pais: "Argentina" },
-  { nombre: "Alejandra Pizarnik", pais: "Argentina" },
-  { nombre: "Ricardo Piglia", pais: "Argentina" },
-  { nombre: "Samanta Schweblin", pais: "Argentina" },
-  { nombre: "Mariana Enriquez", pais: "Argentina" },
-  { nombre: "Gabriel García Márquez", pais: "Colombia" },
-  { nombre: "Mario Vargas Llosa", pais: "Perú" },
-  { nombre: "Isabel Allende", pais: "Chile" },
-  { nombre: "Roberto Bolaño", pais: "Chile" },
-  { nombre: "Juan Rulfo", pais: "México" },
-  { nombre: "Carlos Fuentes", pais: "México" },
-  { nombre: "Octavio Paz", pais: "México" },
-  { nombre: "Mario Benedetti", pais: "Uruguay" },
-  { nombre: "Eduardo Galeano", pais: "Uruguay" },
-  { nombre: "Horacio Quiroga", pais: "Uruguay" },
-  { nombre: "Alejo Carpentier", pais: "Cuba" }
+// Géneros comunes del quiz. "subject" es el tema de OpenLibrary con el que se filtra la API.
+export const GENEROS_QUIZ = [
+  { nombre: "Novela", subject: "novel" },
+  { nombre: "Ficción", subject: "fiction" },
+  { nombre: "Fantasía", subject: "fantasy" },
+  { nombre: "Ciencia ficción", subject: "science fiction" },
+  { nombre: "Misterio", subject: "mystery" },
+  { nombre: "Policial", subject: "detective and mystery stories" },
+  { nombre: "Romance", subject: "romance" },
+  { nombre: "Terror", subject: "horror" },
+  { nombre: "Aventura", subject: "adventure" },
+  { nombre: "Cuentos", subject: "short stories" },
+  { nombre: "Poesía", subject: "poetry" },
+  { nombre: "Historia", subject: "history" },
+  { nombre: "Biografía", subject: "biography" },
+  { nombre: "Filosofía", subject: "philosophy" },
+  { nombre: "Infantil", subject: "children" }
 ];
-const OBRAS_POR_AUTOR = 3;
+
+// Idiomas del quiz. "codigo" es el que usa OpenLibrary.
+export const IDIOMAS_QUIZ = [
+  { nombre: "Español", codigo: "spa" },
+  { nombre: "Inglés", codigo: "eng" },
+  { nombre: "Francés", codigo: "fre" },
+  { nombre: "Alemán", codigo: "ger" },
+  { nombre: "Italiano", codigo: "ita" },
+  { nombre: "Portugués", codigo: "por" }
+];
+
+// Sin gustos guardados (ej: se entra directo a un libro) se muestra un catálogo general.
+const PREFERENCIAS_POR_DEFECTO = { genero: "Ficción", idioma: "Español", anioDesde: null, anioHasta: null };
 
 // Compara nombres sin tildes ni mayúsculas ("Sábato" = "Sabato")
 function normalizar(texto) {
@@ -98,8 +99,20 @@ function puntuarPreferencias(libro, preferencias) {
 
 // Lista de libros que se llenará con el fetch a OpenLibrary
 let libros = [];
-let catalogoCargado = false;
+let claveCatalogo = null;
 let cargaPendiente = null;
+let clavePendiente = null;
+
+function leerPreferenciasGuardadas() {
+  try {
+    const guardadas = JSON.parse(localStorage.getItem(CLAVE_PREFERENCIAS_QUIZ) || "null");
+    const generoValido = GENEROS_QUIZ.some((g) => g.nombre === guardadas?.genero);
+    const idiomaValido = IDIOMAS_QUIZ.some((i) => i.nombre === guardadas?.idioma);
+    return generoValido && idiomaValido ? guardadas : null;
+  } catch {
+    return null;
+  }
+}
 
 // Mapa de stock: Map<libroId, Map<sucursalId, cantidad>>
 const stockMap = new Map();
@@ -128,138 +141,105 @@ function inicializarStockParaLibros(listaLibros) {
   });
 }
 
-// Trae libros de autores argentinos, con un máximo por autor para que haya variedad.
-// Es un agregado: si la consulta falla, el catálogo se carga igual con los libros generales.
-async function buscarDocsArgentinos(campos) {
-  try {
-    const consulta = encodeURIComponent(consultaAutoresArgentinos());
-    const respuesta = await fetch(`https://openlibrary.org/search.json?q=${consulta}&limit=100&fields=${campos}`,
-      { signal: AbortSignal.timeout(TIEMPO_MAXIMO_CONSULTA_MS) });
-    if (!respuesta.ok) return [];
+// Arma la consulta a OpenLibrary: el género, el idioma y la época se filtran en la API.
+function armarUrlBusqueda(preferencias, campos) {
+  const genero = GENEROS_QUIZ.find((g) => g.nombre === preferencias.genero) || GENEROS_QUIZ[1];
+  const idioma = IDIOMAS_QUIZ.find((i) => i.nombre === preferencias.idioma) || IDIOMAS_QUIZ[0];
+  const condiciones = [`subject:"${genero.subject}"`, `language:${idioma.codigo}`];
+  const desde = Number.isInteger(preferencias.anioDesde) ? preferencias.anioDesde : "*";
+  const hasta = Number.isInteger(preferencias.anioHasta) ? preferencias.anioHasta : "*";
+  if (desde !== "*" || hasta !== "*") condiciones.push(`first_publish_year:[${desde} TO ${hasta}]`);
 
-    const data = await respuesta.json();
-    const librosPorAutor = new Map();
-    return (data.docs || [])
-      .filter((doc) => {
-        const autor = autorArgentinoDe(doc.author_name);
-        if (!autor) return false;
-        const cantidad = librosPorAutor.get(autor) || 0;
-        librosPorAutor.set(autor, cantidad + 1);
-        return cantidad < MAX_LIBROS_POR_AUTOR_ARGENTINO;
-      })
-      .slice(0, MAX_LIBROS_ARGENTINOS);
-  } catch {
-    return [];
-  }
+  return `https://openlibrary.org/search.json?q=${encodeURIComponent(condiciones.join(" AND "))}` +
+    `&sort=editions&limit=${LIMITE_LIBROS * 2}&fields=${campos}`;
 }
 
 export const BibliotecaService = {
   /**
-   * Carga libros de autores argentinos y latinoamericanos desde la API pública de OpenLibrary
-   * @param {number} limite Cantidad máxima de libros a traer
+   * Carga desde OpenLibrary los libros que coinciden con los gustos del quiz.
+   * Sin argumentos usa el catálogo ya cargado; si no hay, los gustos guardados o uno general.
+   * @param {{ genero: string, idioma: string, anioDesde: number|null, anioHasta: number|null } | null} preferencias
    */
-  async cargarLibros(limite = AUTORES_CATALOGO.length * OBRAS_POR_AUTOR) {
-    if (catalogoCargado) return libros;
-    if (cargaPendiente) return cargaPendiente;
+  async cargarLibros(preferencias = null) {
+    if (!preferencias && claveCatalogo) return libros;
+    const efectivas = preferencias || leerPreferenciasGuardadas() || PREFERENCIAS_POR_DEFECTO;
+    const clave = JSON.stringify([efectivas.genero, efectivas.idioma, efectivas.anioDesde, efectivas.anioHasta]);
 
-    cargaPendiente = this.cargarDesdeApi(limite);
+    if (clave === claveCatalogo) return libros;
+    if (cargaPendiente && clave === clavePendiente) return cargaPendiente;
+
+    const pendiente = this.cargarDesdeApi(efectivas, clave);
+    cargaPendiente = pendiente;
+    clavePendiente = clave;
     try {
-      return await cargaPendiente;
+      return await pendiente;
     } finally {
-      cargaPendiente = null;
+      if (cargaPendiente === pendiente) {
+        cargaPendiente = null;
+        clavePendiente = null;
+      }
     }
   },
 
-  async cargarDesdeApi(limite) {
+  async cargarDesdeApi(preferencias, clave) {
     const campos = [
       "key",
       "title",
       "author_name",
-      "subject",
       "first_publish_year",
       "number_of_pages_median",
       "ratings_average",
       "ratings_count",
-      "language",
       "publisher",
       "edition_count",
       "cover_i",
-      "cover_edition_key"
+      "cover_edition_key",
+      // La edición que cumple el filtro de idioma: de ahí salen el título, la portada y la editorial
+      "editions",
+      "editions.key",
+      "editions.title",
+      "editions.language",
+      "editions.publisher",
+      "editions.cover_i"
     ].join(",");
-    // Una búsqueda por autor, en paralelo. Se ordena por cantidad de ediciones para
-    // quedarse con las obras conocidas y no con antologías o estudios sobre el autor.
-    const [resultados, docsArgentinos] = await Promise.all([Promise.allSettled(
-      AUTORES_CATALOGO.map(async (autor) => {
-        const URL = `https://openlibrary.org/search.json?author=${encodeURIComponent(autor.nombre)}` +
-          `&language=spa&sort=editions&limit=10&fields=${campos}`;
-        const respuesta = await fetch(URL, { signal: AbortSignal.timeout(TIEMPO_MAXIMO_CONSULTA_MS) });
-        if (!respuesta.ok) throw new Error(`Error ${respuesta.status}`);
-        const data = await respuesta.json();
-        return (data.docs || [])
-          // Solo obras donde el autor buscado es el autor principal y que tengan portada
-          .filter((doc) => doc.author_name?.[0] && normalizar(doc.author_name[0]) === normalizar(autor.nombre))
-          .filter((doc) => doc.cover_i || doc.cover_edition_key)
-          .slice(0, OBRAS_POR_AUTOR)
-          .map((doc) => ({ ...doc, pais: autor.pais }));
-      })
-    ), buscarDocsArgentinos(campos)]);
 
-    if (resultados.every((r) => r.status === "rejected")) {
-      throw new Error("No se pudieron obtener los libros.");
-    }
+    const respuesta = await fetch(armarUrlBusqueda(preferencias, campos),
+      { signal: AbortSignal.timeout(TIEMPO_MAXIMO_CONSULTA_MS) });
+    if (!respuesta.ok) throw new Error("No se pudieron obtener los libros.");
+    const data = await respuesta.json();
 
-    // Sin repetidos (misma obra o mismo título). Los argentinos extra van al final.
+    const tienePortada = (doc) => Number(Boolean(doc.editions?.docs?.[0]?.cover_i || doc.cover_i || doc.cover_edition_key));
+    // Sin repetidos (misma obra o mismo título) y con las portadas primero
     const vistos = new Set();
-    const docs = [
-      ...resultados.flatMap((r) => (r.status === "fulfilled" ? r.value : [])),
-      ...docsArgentinos.map((doc) => ({ ...doc, pais: ORIGEN_ARGENTINA }))
-    ].filter((doc) => {
-      const titulo = normalizar(doc.title);
-      if (vistos.has(doc.key) || vistos.has(titulo)) return false;
-      vistos.add(doc.key);
-      vistos.add(titulo);
-      return true;
-    });
-
-    const generosEjemplo = ["Novela", "Ficción", "Clásico", "Drama", "Aventura"];
-    const mapaIdiomas = {
-      spa: "Español",
-      eng: "Inglés",
-      fre: "Francés",
-      ger: "Alemán",
-      ita: "Italiano",
-      por: "Portugués",
-      cat: "Catalán",
-      lat: "Latín",
-      rus: "Ruso",
-      chi: "Chino"
-    };
+    const docs = (data.docs || [])
+      .filter((doc) => {
+        if (!doc.key || !doc.title) return false;
+        const titulo = normalizar(doc.title);
+        if (vistos.has(doc.key) || vistos.has(titulo)) return false;
+        vistos.add(doc.key);
+        vistos.add(titulo);
+        return true;
+      })
+      .sort((a, b) => tienePortada(b) - tienePortada(a))
+      .slice(0, LIMITE_LIBROS);
 
     libros = docs.map((doc, index) => {
-      let genero = "Novela";
-      if (doc.subject && doc.subject.length > 0 && typeof doc.subject[0] === "string") {
-        genero = doc.subject[0].split(",")[0].trim();
-        if (genero.length > 18) {
-          genero = genero.substring(0, 18);
-        }
-      } else {
-        genero = generosEjemplo[index % generosEjemplo.length];
-      }
-
+      const edicion = doc.editions?.docs?.[0] || {};
+      const coverId = edicion.cover_i || doc.cover_i;
       // Obtención de portadas desde la API de OpenLibrary Covers
       let portada = null;
       let portadaGrande = null;
-      if (doc.cover_i) {
-        portada = `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg`;
-        portadaGrande = `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`;
+      if (coverId) {
+        portada = `https://covers.openlibrary.org/b/id/${coverId}-M.jpg`;
+        portadaGrande = `https://covers.openlibrary.org/b/id/${coverId}-L.jpg`;
       } else if (doc.cover_edition_key) {
         portada = `https://covers.openlibrary.org/b/olid/${doc.cover_edition_key}-M.jpg`;
         portadaGrande = `https://covers.openlibrary.org/b/olid/${doc.cover_edition_key}-L.jpg`;
       }
 
       // Metadatos esenciales del libro
-      const anioPublicacion = doc.first_publish_year || (doc.publish_year && doc.publish_year[0]) || "Clásico";
-      const paginas = doc.number_of_pages_median || (doc.number_of_pages || (220 + ((index * 37) % 200)));
+      const anioPublicacion = doc.first_publish_year || "Clásico";
+      const paginas = doc.number_of_pages_median || (220 + ((index * 37) % 200));
 
       // Puntaje según la crítica y lectores
       let puntaje = null;
@@ -275,27 +255,18 @@ export const BibliotecaService = {
         criticasTotal = (index % 7) + 3;
       }
 
-      // Idioma
-      // OpenLibrary lista los idiomas de todas las ediciones; si hay edición en español se muestra esa
-      const codIdioma = doc.language?.includes("spa") ? "spa" : doc.language?.[0] || null;
-      const idioma = codIdioma ? (mapaIdiomas[codIdioma] || codIdioma.toUpperCase()) : "Español";
-
-      // Editorial
-      const editorial = doc.publisher && doc.publisher.length > 0 && doc.publisher[0].trim()
-        ? doc.publisher[0].trim()
-        : "Editorial Planeta";
-
-      // Ediciones
-      const ediciones = doc.edition_count || 1;
+      const editoriales = edicion.publisher || doc.publisher || [];
+      const editorial = editoriales[0]?.trim() || "Editorial Planeta";
 
       return {
         id: index + 1,
         // Clave estable de OpenLibrary (ej: "/works/OL123W"), no depende del orden de la API
         clave: doc.key,
-        titulo: doc.title,
+        // Título de la edición en el idioma elegido (la obra original puede estar en otro)
+        titulo: edicion.title || doc.title,
         autor: doc.author_name ? doc.author_name[0] : "Autor desconocido",
-        pais: doc.pais,
-        genero: genero,
+        // La API ya filtró por género e idioma: se muestran los que eligió el lector
+        genero: preferencias.genero,
         portada,
         portadaGrande,
         paginas,
@@ -304,14 +275,13 @@ export const BibliotecaService = {
         puntajeTexto,
         criticasTotal,
         editorial,
-        idioma,
-        ediciones,
-        origen: autorArgentinoDe(doc.author_name) ? ORIGEN_ARGENTINA : ORIGEN_OTROS
+        idioma: preferencias.idioma,
+        ediciones: doc.edition_count || 1
       };
     });
 
     inicializarStockParaLibros(libros);
-    catalogoCargado = true;
+    claveCatalogo = clave;
 
     return libros;
   },
@@ -325,15 +295,14 @@ export const BibliotecaService = {
    * Busca libros por título o autor, y opcionalmente por género
    * por cantidad mínima de estrellas (puntaje de 0 a 5) y por rango de páginas.
    * @param {{ min: number, max: number } | null} rangoPaginas Ambos extremos incluidos; null = sin filtro
-   * @param {{ editorial?: string, idioma?: string, origen?: string, anioDesde?: number | null, anioHasta?: number | null }} filtros
-   *   Editorial, idioma y origen exactos ("" o "Todas"/"Todos" = sin filtro); años con ambos extremos incluidos.
+   * @param {{ editorial?: string, idioma?: string, anioDesde?: number | null, anioHasta?: number | null }} filtros
+   *   Editorial e idioma exactos ("" o "Todas"/"Todos" = sin filtro); años con ambos extremos incluidos.
    */
   buscar(texto = "", genero = "", estrellasMinimas = 0, rangoPaginas = null, filtros = {}) {
     const busquedaLimpia = texto.trim().toLowerCase();
     const generoLimpio = genero.trim().toLowerCase();
     const editorialLimpia = (filtros.editorial || "").trim().toLowerCase();
     const idiomaLimpio = (filtros.idioma || "").trim().toLowerCase();
-    const origenLimpio = (filtros.origen || "").trim().toLowerCase();
     const anioDesde = Number.isFinite(filtros.anioDesde) ? filtros.anioDesde : null;
     const anioHasta = Number.isFinite(filtros.anioHasta) ? filtros.anioHasta : null;
 
@@ -370,11 +339,6 @@ export const BibliotecaService = {
         idiomaLimpio === "todos" ||
         libro.idioma.toLowerCase() === idiomaLimpio;
 
-      const coincideOrigen =
-        !origenLimpio ||
-        origenLimpio === "todos" ||
-        libro.origen.toLowerCase() === origenLimpio;
-
       // Los libros sin año numérico (ej: "Clásico") quedan afuera si se pide un rango de años
       const tieneAnio = typeof libro.anioPublicacion === "number";
       const coincideAnio =
@@ -384,7 +348,7 @@ export const BibliotecaService = {
           (anioHasta === null || libro.anioPublicacion <= anioHasta));
 
       return coincideTexto && coincideGenero && coincideEstrellas && coincidePaginas &&
-        coincideEditorial && coincideIdioma && coincideOrigen && coincideAnio;
+        coincideEditorial && coincideIdioma && coincideAnio;
     });
   },
 
@@ -407,14 +371,6 @@ export const BibliotecaService = {
 
   puntuarPreferencias(libro, preferencias) {
     return puntuarPreferencias(libro, preferencias);
-  },
-
-  /**
-   * Obtiene la lista de géneros disponibles sin repetidos.
-   */
-  getGeneros() {
-    const generosSet = new Set(libros.map((libro) => libro.genero));
-    return Array.from(generosSet);
   },
 
   /**
