@@ -1,20 +1,19 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { BibliotecaService, ORIGEN_ARGENTINA, ORIGEN_OTROS } from "../services/bibliotecaService.js";
+import { BibliotecaService, GENEROS_QUIZ, IDIOMAS_QUIZ } from "../services/bibliotecaService.js";
 import GrillaLibros from "../components/GrillaLibros.vue";
 
 const CLAVE_PREFERENCIAS_QUIZ = "biblioteca_preferencias_lectura";
 const ANIO_ACTUAL = new Date().getFullYear();
 
 const busqueda = ref("");
-const generoSeleccionado = ref("Todos");
-const generos = ref(["Todos"]);
-const idiomasQuiz = ref([]);
+const generosQuiz = GENEROS_QUIZ.map((g) => g.nombre);
+const idiomasQuiz = IDIOMAS_QUIZ.map((i) => i.nombre);
 const errorQuiz = ref("");
 const preferencias = ref(leerPreferencias());
 const quizAbierto = ref(!preferencias.value);
-const generoQuiz = ref(preferencias.value?.genero || "");
-const idiomaQuiz = ref(preferencias.value?.idioma || "");
+const generoQuiz = ref(preferencias.value?.genero || generosQuiz[0]);
+const idiomaQuiz = ref(preferencias.value?.idioma || idiomasQuiz[0]);
 const anioDesdeQuiz = ref(preferencias.value?.anioDesde ?? 1950);
 const anioHastaQuiz = ref(preferencias.value?.anioHasta ?? 2000);
 
@@ -26,8 +25,8 @@ function leerPreferencias() {
     const preferenciasGuardadas = JSON.parse(guardadas);
     const { genero, idioma, anioDesde, anioHasta } = preferenciasGuardadas;
     if (
-      typeof genero === "string" &&
-      typeof idioma === "string" &&
+      generosQuiz.includes(genero) &&
+      idiomasQuiz.includes(idioma) &&
       Number.isInteger(anioDesde) &&
       Number.isInteger(anioHasta) &&
       anioDesde >= 0 &&
@@ -66,46 +65,24 @@ const OPCIONES_PAGINAS = [
 // Requerimiento: Buscar por editorial, año de publicación e idioma
 const editorialSeleccionada = ref("Todas");
 const editoriales = ref(["Todas"]);
-const idiomaSeleccionado = ref("Todos");
-const idiomas = ref(["Todos"]);
 // Vacío = sin límite; v-model.number deja "" cuando se borra el campo
 const anioDesde = ref("");
 const anioHasta = ref("");
 
-// Tarea 14: Filtrar por origen - Sol
-const origenSeleccionado = ref("Todos");
-const ORIGENES = ["Todos", ORIGEN_ARGENTINA, ORIGEN_OTROS];
-
 const libros = ref([]);
-const isLoading = ref(true);
+const isLoading = ref(false);
 const error = ref("");
 
-// Carga inicial desde la API: 25 libros generales más los de autores argentinos
+// Carga desde la API ya filtrada por los gustos del quiz (género, idioma y época)
 async function cargarLibros() {
+  if (!preferencias.value) return;
   isLoading.value = true;
   error.value = "";
 
   try {
-    libros.value = await BibliotecaService.cargarLibros();
-    generos.value = ["Todos", ...BibliotecaService.getGeneros()];
+    libros.value = await BibliotecaService.cargarLibros(preferencias.value);
     editoriales.value = ["Todas", ...BibliotecaService.getEditoriales()];
-    idiomas.value = ["Todos", ...BibliotecaService.getIdiomas()];
-    idiomasQuiz.value = BibliotecaService.getIdiomas();
-
-    if (!generoQuiz.value || !generos.value.includes(generoQuiz.value)) {
-      generoQuiz.value = generos.value[1] || "";
-    }
-    if (!idiomaQuiz.value || !idiomasQuiz.value.includes(idiomaQuiz.value)) {
-      idiomaQuiz.value = idiomasQuiz.value[0] || "";
-    }
-
-    if (preferencias.value &&
-      (!generos.value.includes(preferencias.value.genero) ||
-       !idiomasQuiz.value.includes(preferencias.value.idioma))) {
-      preferencias.value = null;
-      quizAbierto.value = true;
-      errorQuiz.value = "Actualizamos el catálogo. Revisá tus gustos para ver recomendaciones.";
-    }
+    editorialSeleccionada.value = "Todas";
   } catch (e) {
     error.value = e.message || "Error al conectar con la API de OpenLibrary.";
   } finally {
@@ -119,13 +96,11 @@ const librosFiltrados = computed(() => {
   const opcionPaginas = OPCIONES_PAGINAS.find((o) => o.valor === rangoPaginas.value);
   return BibliotecaService.buscar(
     busqueda.value,
-    generoSeleccionado.value,
+    "",
     estrellasMinimas.value,
     opcionPaginas?.rango ?? null,
     {
       editorial: editorialSeleccionada.value,
-      idioma: idiomaSeleccionado.value,
-      origen: origenSeleccionado.value,
       anioDesde: anioDesde.value,
       anioHasta: anioHasta.value
     }
@@ -146,11 +121,6 @@ const coincidenciasCompletas = computed(() => {
 
 function guardarPreferencias() {
   errorQuiz.value = "";
-  if (!generoQuiz.value || !idiomaQuiz.value) {
-    errorQuiz.value = "No hay suficientes datos del catálogo para completar el quiz.";
-    return;
-  }
-
   if (
     !Number.isInteger(anioDesdeQuiz.value) ||
     !Number.isInteger(anioHastaQuiz.value) ||
@@ -170,6 +140,7 @@ function guardarPreferencias() {
   };
   preferencias.value = respuestas;
   quizAbierto.value = false;
+  cargarLibros();
 
   try {
     localStorage.setItem(CLAVE_PREFERENCIAS_QUIZ, JSON.stringify(respuestas));
@@ -195,15 +166,6 @@ const filtrosActivos = computed(() => {
   const activos = [];
   const agregar = (clave, texto, quitar) => activos.push({ clave, texto, quitar });
 
-  if (generoSeleccionado.value !== "Todos") {
-    agregar("genero", `Género: ${generoSeleccionado.value}`, () => (generoSeleccionado.value = "Todos"));
-  }
-  if (origenSeleccionado.value !== "Todos") {
-    agregar("origen", `Origen: ${origenSeleccionado.value}`, () => (origenSeleccionado.value = "Todos"));
-  }
-  if (idiomaSeleccionado.value !== "Todos") {
-    agregar("idioma", `Idioma: ${idiomaSeleccionado.value}`, () => (idiomaSeleccionado.value = "Todos"));
-  }
   if (editorialSeleccionada.value !== "Todas") {
     agregar("editorial", `Editorial: ${editorialSeleccionada.value}`, () => (editorialSeleccionada.value = "Todas"));
   }
@@ -229,28 +191,15 @@ function limpiarFiltros() {
   busqueda.value = "";
 }
 
-onMounted(() => {
-  cargarLibros();
-});
+// Con gustos guardados se pide a la API apenas se entra; sin ellos se espera al quiz
+onMounted(cargarLibros);
 </script>
 
 <template>
   <section aria-labelledby="titulo-listado">
     <h2 id="titulo-listado">Listado de libros</h2>
 
-    <!-- Estado de carga -->
-    <div v-if="isLoading" class="estado" role="status">
-      <p>Cargando libros desde OpenLibrary...</p>
-    </div>
-
-    <!-- Estado de error con reintento -->
-    <div v-else-if="error" class="estado error" role="alert">
-      <p>{{ error }}</p>
-      <button @click="cargarLibros">Reintentar</button>
-    </div>
-
-    <!-- Contenido principal -->
-    <div v-else>
+    <div>
       <form v-if="quizAbierto" class="quiz-preferencias" @submit.prevent="guardarPreferencias">
         <div class="quiz-encabezado">
           <div>
@@ -264,7 +213,7 @@ onMounted(() => {
           <label class="campo">
             <span>1. ¿Qué género te gusta más?</span>
             <select v-model="generoQuiz" required>
-              <option v-for="genero in generos.slice(1)" :key="genero" :value="genero">
+              <option v-for="genero in generosQuiz" :key="genero" :value="genero">
                 {{ genero }}
               </option>
             </select>
@@ -298,6 +247,19 @@ onMounted(() => {
         <p v-if="errorQuiz" class="error-quiz" role="alert">{{ errorQuiz }}</p>
         <button type="submit" class="btn-recomendar">Ver mis recomendaciones</button>
       </form>
+
+      <!-- Estado de carga: solo después de elegir los gustos -->
+      <div v-if="isLoading" class="estado" role="status">
+        <p>Buscando libros para vos en OpenLibrary...</p>
+      </div>
+
+      <!-- Estado de error con reintento -->
+      <div v-else-if="error" class="estado error" role="alert">
+        <p>{{ error }}</p>
+        <button @click="cargarLibros">Reintentar</button>
+      </div>
+
+      <template v-else>
 
       <div v-if="preferencias && !quizAbierto" class="resumen-quiz">
         <p>
@@ -339,33 +301,6 @@ onMounted(() => {
       </div>
 
       <div v-show="panelAbierto" id="panel-filtros" class="panel-filtros">
-        <label class="campo">
-          <span>Género</span>
-          <select v-model="generoSeleccionado">
-            <option v-for="genero in generos" :key="genero" :value="genero">
-              {{ genero }}
-            </option>
-          </select>
-        </label>
-
-        <label class="campo">
-          <span>Origen</span>
-          <select v-model="origenSeleccionado">
-            <option v-for="origen in ORIGENES" :key="origen" :value="origen">
-              {{ origen }}
-            </option>
-          </select>
-        </label>
-
-        <label class="campo">
-          <span>Idioma</span>
-          <select v-model="idiomaSeleccionado">
-            <option v-for="idioma in idiomas" :key="idioma" :value="idioma">
-              {{ idioma }}
-            </option>
-          </select>
-        </label>
-
         <label class="campo">
           <span>Editorial</span>
           <select v-model="editorialSeleccionada">
@@ -438,6 +373,7 @@ onMounted(() => {
       </div>
 
       <GrillaLibros v-else :libros="librosRecomendados" />
+      </template>
       </template>
     </div>
   </section>

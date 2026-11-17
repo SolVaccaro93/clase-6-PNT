@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { BibliotecaService, ORIGEN_ARGENTINA, cambiosStock } from "../services/bibliotecaService.js";
+import { BibliotecaService, cambiosStock } from "../services/bibliotecaService.js";
 import { useAuthStore } from "../stores/authStore.js";
 import EstrellasLibro from "./EstrellasLibro.vue";
 
@@ -115,7 +115,7 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
       </div>
     </div>
 
-    <span class="genero">{{ libro.genero }}</span>
+    <span v-if="mostrarDetalle" class="genero">{{ libro.genero }}</span>
     <h2>{{ libro.titulo }}</h2>
     <p class="autor">Autor: {{ libro.autor }}</p>
 
@@ -124,9 +124,6 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
 
     <!-- Metadatos rápidos en el catálogo (páginas, año, puntaje de la crítica) -->
     <div v-if="mostrarDetalle" class="metadatos-preview">
-      <span v-if="libro.origen === ORIGEN_ARGENTINA" class="meta-chip chip-origen" title="Autor argentino">
-        📍 {{ ORIGEN_ARGENTINA }}
-      </span>
       <span class="meta-chip chip-paginas" :title="`Cantidad de páginas: ${libro.paginas}`">
         📄 {{ libro.paginas }} págs.
       </span>
@@ -156,6 +153,10 @@ watch([cambiosStock, () => props.libro.id], cargarDisponibilidad, { immediate: t
         <div class="ficha-item">
           <span class="ficha-label">🌐 Idioma</span>
           <span class="ficha-valor">{{ libro.idioma }}</span>
+        </div>
+        <div class="ficha-item">
+          <span class="ficha-label">🏷️ Género</span>
+          <span class="ficha-valor">{{ libro.genero }}</span>
         </div>
         <div class="ficha-item">
           <span class="ficha-label">📚 Ediciones Registradas</span>
@@ -444,13 +445,6 @@ select {
   border: 1px solid var(--color-border-hover);
   color: var(--color-text);
   font-weight: 500;
-}
-
-.chip-origen {
-  background-color: color-mix(in srgb, var(--color-accent) 15%, transparent);
-  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
-  color: var(--color-accent);
-  font-weight: 600;
 }
 
 .chip-puntaje {

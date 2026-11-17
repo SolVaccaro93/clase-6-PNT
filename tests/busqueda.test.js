@@ -2,7 +2,7 @@ import { setActivePinia, createPinia } from "pinia";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-test("buscar filtra por editorial, idioma y rango de años", async () => {
+test("buscar filtra por editorial y rango de años", async () => {
   globalThis.localStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
   globalThis.fetch = async () => ({ ok: true, json: async () => ({ docs: [
     { key: "/works/A", title: "Libro A", publisher: ["Anagrama"], language: ["spa"], first_publish_year: 1950 },
@@ -16,12 +16,12 @@ test("buscar filtra por editorial, idioma y rango de años", async () => {
   const titulos = (filtros) => biblioteca.buscar("", "", 0, null, filtros).map((l) => l.titulo);
 
   assert.deepEqual(biblioteca.getEditoriales(), ["Anagrama", "Editorial Planeta", "Penguin"]);
-  assert.deepEqual(biblioteca.getIdiomas(), ["Español", "Inglés"]);
+  // El idioma lo filtra la API según el quiz: todos los libros cargados comparten idioma
+  assert.deepEqual(biblioteca.getIdiomas(), ["Español"]);
   assert.equal(titulos({}).length, 4);
   assert.deepEqual(titulos({ editorial: "Todas", idioma: "Todos" }).length, 4);
   assert.deepEqual(titulos({ editorial: "anagrama" }), ["Libro A", "Libro C"]);
-  assert.deepEqual(titulos({ idioma: "Inglés" }), ["Libro B", "Libro C"]);
-  assert.deepEqual(titulos({ editorial: "Anagrama", idioma: "Inglés" }), ["Libro C"]);
+  assert.deepEqual(titulos({ editorial: "Anagrama", anioDesde: 2000 }), ["Libro C"]);
   assert.deepEqual(titulos({ anioDesde: 1990 }), ["Libro B", "Libro C"]);
   assert.deepEqual(titulos({ anioHasta: 1990 }), ["Libro A", "Libro B"]);
   assert.deepEqual(titulos({ anioDesde: 1960, anioHasta: 2000 }), ["Libro B"]);

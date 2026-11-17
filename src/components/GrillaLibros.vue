@@ -171,19 +171,26 @@ li:nth-child(9n-5)::after {
   width: 43%;
   left: 50%;
   top: 50%;
-  transform: translateX(-50%) translateY(-60%);
+  /* "translate" y no "transform": la regla global de reduced-motion anula transform en :hover
+     y el link saltaba hacia abajo al pasar el mouse (el hover parpadeaba sin parar) */
+  translate: -50% -60%;
   pointer-events: auto;
 }
 
 .tapa {
   display: block;
   box-shadow: 5px -5px 10px rgba(0, 0, 0, 0.3);
-  transition: transform 0.3s;
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  transform-origin: 50% 100%;
 }
 
+/* Animación simple: la portada sube un poco, sin rotar ni cambiar de capa
+   (si pasara por encima del "bolsillo" del rombo se vería que se cae).
+   El hover se mide sobre el link (quieto), así la zona de hover no cambia mientras se anima. */
 .portada:hover .tapa,
 .portada:focus-visible .tapa {
-  transform: translateX(10%) translateY(-10%) rotate(25deg);
+  transform: translateY(-8%);
+  box-shadow: 6px -8px 14px rgba(0, 0, 0, 0.4);
 }
 
 .portada:focus-visible {
