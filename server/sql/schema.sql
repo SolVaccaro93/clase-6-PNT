@@ -11,7 +11,7 @@ CREATE TABLE dbo.Usuarios (
   id         INT IDENTITY PRIMARY KEY,
   usuario    NVARCHAR(50)  NOT NULL UNIQUE,
   nombre     NVARCHAR(100) NOT NULL,
-  rol        NVARCHAR(20)  NOT NULL CHECK (rol IN ('visita','admin')),
+  rol        NVARCHAR(20)  NOT NULL CHECK (rol IN ('visita','admin','dueno')),
   clave_hash NVARCHAR(100) NOT NULL
 );
 

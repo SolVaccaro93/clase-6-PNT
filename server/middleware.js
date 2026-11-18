@@ -20,6 +20,6 @@ export async function requireAuth(req, res, next) {
 }
 
 export function requireAdmin(req, res, next) {
-  if (req.usuario?.rol !== "admin") return res.status(403).json({ error: "Solo administradores." });
+  if (!["admin", "dueno"].includes(req.usuario?.rol)) return res.status(403).json({ error: "Solo administradores." });
   next();
 }

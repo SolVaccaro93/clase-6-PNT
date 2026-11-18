@@ -4,14 +4,18 @@ Trabajo práctico desarrollado con **Vue 3**, **Vite** y **Vue Router 4**. Permi
 
 ## Ejecutar el proyecto
 
-Con Node.js y npm instalados, abrir una terminal en la carpeta del proyecto:
+La aplicación necesita **dos procesos a la vez**: el backend (API con SQL Server) y el front (Vite). Hacen falta Node.js, npm y SQL Server.
 
-```sh
-npm install
-npm run dev
-```
+**La primera vez** hay que preparar la base de datos y el archivo `.env`. Está explicado paso a paso en [`docs/DOCUMENTACION_SETUP_BACKEND.md`](docs/DOCUMENTACION_SETUP_BACKEND.md) y resumido en [Persistencia con SQL Server](#persistencia-con-sql-server).
 
-Abrir la dirección que indique Vite en la terminal, normalmente `http://localhost:5173`. Mantener la terminal abierta mientras se usa la aplicación.
+**Cada vez que se usa la aplicación**, con SQL Server en marcha, abrir dos terminales en la carpeta del proyecto:
+
+| Terminal | Comando | Qué hace |
+| --- | --- | --- |
+| 1 | `npm run server` | Levanta el backend en `http://localhost:3001`. Debe mostrar `API lista en http://localhost:3001`. |
+| 2 | `npm run dev` | Levanta el front. Abrir la dirección que indique Vite, normalmente `http://localhost:5173`. |
+
+Tras clonar o actualizar el repositorio, ejecutar antes `npm install`. Mantener las dos terminales abiertas mientras se usa la aplicación. Sin el backend, no se puede iniciar sesión.
 
 ## Compilar
 
@@ -46,13 +50,15 @@ Para evaluar la aplicación rápidamente desde la pantalla de login:
 * **Administrador (admin):** `admin` / `admin`
 * **Dueño de la librería (dueño):** `duenolibreria` / `dueno`. Puede hacer todo lo del admin y además ve **Métricas**.
 
+Estos usuarios los crea el backend en la tabla `Usuarios` la primera vez que arranca, con la clave guardada con hash.
+
 ## Retiro y devolución
 
 Con sesión iniciada, elegí una sucursal con stock y pulsá **Retirar libro**. Se descuenta un ejemplar y el préstamo queda en `leyendo`. Cada usuario puede tener varios préstamos activos, pero no el mismo libro dos veces a la vez.
 
 Desde la tarjeta del libro o **Mis préstamos**, pulsá **Devolver y terminar**. Se repone el ejemplar en la sucursal original, se registra la fecha de devolución y el estado pasa a `terminado`. El historial se conserva y se puede volver a retirar ese libro.
 
-Los préstamos y el stock se guardan juntos en localStorage y sobreviven a recargas y cambios de sesión. Son datos locales de este navegador; el proyecto todavía no tiene un backend compartido entre dispositivos. Las lecturas registradas también aparecen en Mis amigos junto con los datos de demostración.
+Los préstamos y el stock se guardan en SQL Server (tablas `Prestamos` y `Stock`) y sobreviven a recargas, cambios de sesión y de navegador. Las lecturas registradas también aparecen en Mis amigos junto con los datos de demostración.
 
 Para verificar las reglas de préstamos: `npm test`.
 
@@ -60,13 +66,12 @@ Para verificar las reglas de préstamos: `npm test`.
 
 En **Listado**, el buscador por título o autor está siempre visible. El botón **Filtros** despliega el resto:
 
-* **Género.**
 * **Editorial.**
-* **Idioma.**
 * **Año de publicación:** desde y hasta.
 * **Estrellas:** solo los libros con ese puntaje o más (3, 3,5, 4 o 4,5). Se usa el puntaje actual, que incluye los votos de los usuarios.
 * **Páginas:** hasta 200, de 201 a 400, o más de 400.
-* **Origen:** Argentina u otros países, según el autor. El catálogo suma hasta 15 libros de autores argentinos a los 25 generales.
+
+El género y el idioma ya no son filtros del listado: salen del **cuestionario de gustos** y se piden a OpenLibrary ya filtrados (ver `docs/DOCUMENTACION_GRILLA_Y_GUSTOS.md`).
 
 Los filtros se combinan: un libro aparece solo si los cumple todos. Los que están en uso se muestran como chips que se quitan con ✕, junto con la cantidad de resultados.
 
@@ -76,7 +81,7 @@ Cada libro muestra sus estrellas en la tarjeta del listado y en el detalle, con 
 
 Cada usuario tiene un voto por libro y puede cambiarlo. El promedio combina el puntaje original de OpenLibrary (que cuenta como 3 votos) con los votos de los usuarios de la app. También se puede votar con el teclado: Tab para llegar a las estrellas, flechas para elegir y Enter para votar.
 
-Los votos se guardan en localStorage (`biblioteca_votos`) y sobreviven a recargas. El administrador puede borrarlos desde el **Panel Admin** con **Reiniciar votos**, para repetir la demo.
+Los votos se guardan en SQL Server (tabla `Votos`) y sobreviven a recargas. El administrador puede borrarlos desde el **Panel Admin** con **Reiniciar votos**, para repetir la demo.
 
 ## Mis amigos y feed de actividad
 
@@ -102,20 +107,33 @@ El detalle de cada funcionalidad está en la carpeta `docs/`:
 | Filtro por cantidad de estrellas | `docs/DOCUMENTACION_FILTRO_ESTRELLAS.md` |
 | Calificación con estrellas (votos) | `docs/DOCUMENTACION_VOTOS_ESTRELLAS.md` |
 | Filtro por cantidad de páginas | `docs/DOCUMENTACION_FILTRO_PAGINAS.md` |
-| Libros argentinos y filtro por origen | `docs/DOCUMENTACION_ORIGEN_LIBROS.md` |
+| Libros argentinos y filtro por origen (reemplazado por el catálogo según gustos) | `docs/DOCUMENTACION_ORIGEN_LIBROS.md` |
 | Panel de filtros y libros sin stock | `docs/DOCUMENTACION_FILTROS_Y_SIN_STOCK.md` |
 | Perfil del dueño y métricas | `docs/DOCUMENTACION_METRICAS_DUENO.md` |
 | Grilla de libros en rombos | `docs/DOCUMENTACION_GRILLA_LIBROS.md` |
 | Autenticación con Pinia | `docs/DOCUMENTACION_AUTH_PINIA.md` |
+| Quiz de gustos y recomendaciones | `docs/DOCUMENTACION_QUIZ_RECOMENDACIONES.md` |
+| Animación de la grilla y catálogo según gustos | `docs/DOCUMENTACION_GRILLA_Y_GUSTOS.md` |
+| Persistencia con SQL Server (diseño, tablas, endpoints) | `docs/DOCUMENTACION_PERSISTENCIA_SQL_SERVER.md` |
+| Puesta en marcha del backend, paso a paso | `docs/DOCUMENTACION_SETUP_BACKEND.md` |
 
 
 ## Persistencia con SQL Server
 
-Los usuarios, las sesiones, los gustos del cuestionario, los libros vistos, los votos, los préstamos y el stock se guardan en SQL Server (localhost).
+Los usuarios, las sesiones, los gustos del cuestionario, los libros vistos, los votos, los préstamos y el stock se guardan en SQL Server (localhost). Un backend Node + Express (carpeta `server/`) conecta la aplicación con la base.
 
-1. Abrí `server/sql/schema.sql` en SQL Server Management Studio y ejecutalo. Crea la base `BibliotecaDB` y las tablas.
-2. Copiá `.env.example` a `.env` y completá `DB_USER` y `DB_PASSWORD` (login SQL habilitado). Si usás una instancia con nombre, descomentá `DB_INSTANCE`.
-3. Levantá el backend con `npm run server`. Al arrancar crea los usuarios `lector` / `123` y `admin` / `admin`, con la clave hasheada.
-4. En otra terminal, `npm run dev`. Vite redirige `/api` al backend (puerto 3001).
+**Preparación, la primera vez.** El detalle y los errores frecuentes están en [`docs/DOCUMENTACION_SETUP_BACKEND.md`](docs/DOCUMENTACION_SETUP_BACKEND.md).
 
-La sesión es una fila de la tabla `Sesiones` (token con vencimiento de 7 días). El navegador solo guarda el token.
+1. `npm install`.
+2. En SQL Server, habilitar **TCP/IP** en el puerto 1433 (Configuration Manager) y reiniciar el servicio.
+3. En SQL Server Management Studio, ejecutar `server/sql/schema.sql`. Crea la base `BibliotecaDB` y las tablas.
+4. Activar el modo de autenticación mixto y crear un login SQL, por ejemplo:
+   ```sql
+   CREATE LOGIN biblioteca WITH PASSWORD = 'UnaClaveSegura123!', CHECK_POLICY = OFF;
+   ALTER SERVER ROLE sysadmin ADD MEMBER biblioteca;
+   ```
+5. Copiar `.env.example` a `.env` en la **raíz del proyecto** y completar `DB_USER` y `DB_PASSWORD` con los del login. `DB_PORT` es el puerto de SQL Server (1433) y `PORT` el del backend (3001).
+
+**Uso diario.** `npm run server` en una terminal y `npm run dev` en otra.
+
+La sesión es una fila de la tabla `Sesiones` (token con vencimiento de 7 días). El navegador solo guarda el token. El diseño completo está en `docs/DOCUMENTACION_PERSISTENCIA_SQL_SERVER.md`.

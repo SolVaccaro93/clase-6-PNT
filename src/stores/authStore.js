@@ -14,7 +14,8 @@ const CLAVE_SESION = "biblioteca_usuario";
 // Usuarios de ayuda en la pantalla de login (los reales están en la base).
 const USUARIOS_DEMO = [
   { usuario: "lector", clave: "123", nombre: "Sol Vaccaro", rol: "visita" },
-  { usuario: "admin", clave: "admin", nombre: "Matías Gratz", rol: "admin" }
+  { usuario: "admin", clave: "admin", nombre: "Matías Gratz", rol: "admin" },
+  { usuario: "duenolibreria", clave: "dueno", nombre: "Dueño de la librería", rol: "dueno" }
 ];
 
 function leerUsuarioLocal() {

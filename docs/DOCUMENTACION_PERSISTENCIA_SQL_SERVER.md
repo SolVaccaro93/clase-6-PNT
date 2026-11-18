@@ -36,12 +36,12 @@ Los libros no se guardan: vienen de OpenLibrary. Las tablas los identifican con 
 | `GET` / `PUT /api/preferencias` | con sesión | gustos del quiz |
 | `GET` / `POST /api/vistos` | con sesión | historial de libros vistos |
 | `GET` / `PUT /api/votos` | con sesión | leer todos los votos, votar |
-| `DELETE /api/votos` | admin | reiniciar votos |
+| `DELETE /api/votos` | admin o dueño | reiniciar votos |
 | `GET /api/datos` | con sesión | préstamos del usuario y stock |
 | `PUT /api/prestamos` | con sesión | guardar un retiro o devolución y su stock (en una transacción) |
-| `PUT /api/stock` | admin | ajuste manual de stock |
+| `PUT /api/stock` | admin o dueño | ajuste manual de stock |
 
-`requireAuth` (`server/middleware.js`) busca el token en `Sesiones` y responde **401** si falta o venció. `requireAdmin` responde **403** si el rol no es `admin`.
+`requireAuth` (`server/middleware.js`) busca el token en `Sesiones` y responde **401** si falta o venció. `requireAdmin` responde **403** si el rol no es `admin` ni `dueno`.
 
 ## 🔐 Cómo funciona la sesión
 1. `authStore.login` llama a `/api/auth/login`. El servidor compara la clave con el hash y crea una fila en `Sesiones`.
@@ -50,17 +50,21 @@ Los libros no se guardan: vienen de OpenLibrary. Las tablas los identifican con 
 4. `logout` limpia el navegador al instante y borra la fila de `Sesiones`.
 
 ## 🚀 Cómo inicializar la base
+> La guía completa, con los errores que aparecen en una PC nueva, está en `DOCUMENTACION_SETUP_BACKEND.md`. Lo que sigue es un resumen.
+
 1. **SQL Server en marcha.** Debe estar iniciado el servicio (en la edición Express se llama `SQL Server (SQLEXPRESS)`). Hace falta autenticación SQL habilitada ("SQL Server and Windows Authentication mode") y un usuario con permisos, por ejemplo `sa` con clave.
 2. **Crear la base y las tablas.** En SSMS, conectarse a `localhost`, abrir `server/sql/schema.sql` y ejecutarlo completo (F5). Es repetible: no pisa lo que ya existe.
-3. **Configurar la conexión.** Copiar `.env.example` a `.env` y completar:
+3. **Configurar la conexión.** Copiar `.env.example` a `.env` en la **raíz del proyecto** y completar:
    ```
    DB_SERVER=localhost
-   DB_INSTANCE=SQLEXPRESS   # solo si usan una instancia con nombre
+   DB_PORT=1433
    DB_NAME=BibliotecaDB
-   DB_USER=sa
+   DB_USER=biblioteca
    DB_PASSWORD=su_clave
+   PORT=3001
    ```
-4. **Levantar el backend:** `npm run server`. Debe imprimir `API lista en http://localhost:3001`. Al arrancar crea los usuarios `lector` / `123` y `admin` / `admin` si no existen.
+   `DB_PORT` es el puerto de SQL Server y `PORT` el del backend. Con una instancia por nombre se usa `DB_INSTANCE` en lugar de `DB_PORT`, nunca los dos.
+4. **Levantar el backend:** `npm run server`. Debe imprimir `API lista en http://localhost:3001`. Al arrancar crea los usuarios `lector` / `123`, `admin` / `admin` y `duenolibreria` / `dueno` si no existen. Si la tabla `Usuarios` se creó antes del rol `dueno`, también actualiza su restricción para admitirlo.
 5. **Levantar el front** en otra terminal: `npm run dev`.
 
 ## 🔍 Cómo ver la persistencia en SSMS
@@ -106,5 +110,5 @@ Los tests existentes simulan la sesión (`iniciar(auth, "lector")`) en vez de ha
 ## ⚠️ Limitaciones
 * La clave y el token viajan por HTTP sin cifrar: sirve para desarrollo local, no para producción.
 * Si falla un guardado en el servidor, la pantalla ya cambió: solo se avisa por consola y queda la copia en `localStorage`.
-* No hay registro de usuarios nuevos: solo `lector` y `admin`.
+* No hay registro de usuarios nuevos: solo `lector`, `admin` y `duenolibreria`.
 * `AmigosService` y los eventos de métricas siguen con datos simulados o en `localStorage`.
