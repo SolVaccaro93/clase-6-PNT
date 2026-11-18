@@ -21,7 +21,7 @@ Vue (stores y servicios) --fetch /api--> Express (server/) --mssql--> SQL Server
 | `Sesiones` | token (64 caracteres), usuario, fecha de creación y de vencimiento (7 días) |
 | `PreferenciasLectura` | gustos del quiz: género, idioma y rango de años. Una fila por usuario |
 | `LibrosVistos` | cada vez que un usuario abre el detalle de un libro |
-| `Votos` | estrellas: un voto por usuario y libro |
+| `Votos` | estrellas: un voto por usuario y libro, con el título del libro para las métricas |
 | `Prestamos` | retiros y devoluciones |
 | `Stock` | cantidad por libro y sucursal (solo las celdas que cambiaron) |
 | `Eventos` | búsquedas de los usuarios (texto, resultados y quién), para las métricas del dueño |

@@ -62,6 +62,7 @@ const metricas = computed(() => {
   return calcularMetricas({
     ...datos,
     libros: libros.value,
+    titulos: votosStore.titulos,
     stockTotalDe,
     sucursales: SUCURSALES,
     dias: dias.value

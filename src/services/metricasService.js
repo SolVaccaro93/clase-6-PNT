@@ -54,6 +54,7 @@ function promedio(numeros) {
  * @param {Array} datos.libros      Catálogo (para títulos y stock)
  * @param {Function} datos.stockTotalDe  libro => ejemplares en todas las sucursales
  * @param {Array} datos.eventos     Interacciones registradas (búsquedas)
+ * @param {object} datos.titulos    { [claveLibro]: titulo } de los libros votados que no están en el catálogo
  * @param {Array} datos.sucursales  [{ id, nombre }]
  * @param {number} datos.dias       Tamaño del período, contando hoy
  * @param {Date} datos.hoy
@@ -64,6 +65,7 @@ export function calcularMetricas({
   libros = [],
   stockTotalDe = () => 0,
   eventos = [],
+  titulos = {},
   sucursales = [],
   dias = 30,
   hoy = new Date()
@@ -103,7 +105,13 @@ export function calcularMetricas({
   const topLectores = ranking(retirosDelPeriodo, (p) => p.id_usuario, (p) => ({ nombre: nombreDeUsuario(p.id_usuario) }));
 
   // ---- Votos de estrellas (no tienen fecha: se cuentan todos) ----
-  const tituloDe = new Map(libros.map((l) => [l.clave, l.titulo]));
+  // El título sale del catálogo cargado, del guardado con el voto o de los préstamos.
+  // Nunca se muestra la clave interna ("/works/OL123W").
+  const tituloDe = new Map([
+    ...Object.entries(titulos),
+    ...prestamos.map((p) => [p.clave_libro, p.titulo]),
+    ...libros.map((l) => [l.clave, l.titulo])
+  ]);
   const listaVotos = Object.entries(votos).flatMap(([clave, porUsuario]) =>
     Object.entries(porUsuario).map(([usuario, puntaje]) => ({ clave, usuario, puntaje }))
   );
@@ -115,7 +123,7 @@ export function calcularMetricas({
   const mejorValorados = Object.entries(votos)
     .map(([clave, porUsuario]) => {
       const puntajes = Object.values(porUsuario);
-      return { clave, titulo: tituloDe.get(clave) || clave, promedio: promedio(puntajes), votos: puntajes.length };
+      return { clave, titulo: tituloDe.get(clave) || "Libro sin título registrado", promedio: promedio(puntajes), votos: puntajes.length };
     })
     .filter((l) => l.votos > 0)
     .sort((a, b) => b.promedio - a.promedio || b.votos - a.votos)

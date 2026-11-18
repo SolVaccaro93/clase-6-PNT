@@ -40,6 +40,8 @@ function leerVotos() {
 export const useVotosStore = defineStore("votos", () => {
   // STATE: { [claveLibro]: { [usuario]: puntaje } }
   const votos = ref(leerVotos());
+  // Título de cada libro votado, para mostrarlo en las métricas: { [claveLibro]: titulo }
+  const titulos = ref({});
 
   // Guarda primero en localStorage y recién después actualiza el estado:
   // si la persistencia falla, la pantalla no muestra un voto que no se guardó.
@@ -49,7 +51,7 @@ export const useVotosStore = defineStore("votos", () => {
   }
 
   // ACTION: el usuario logueado califica un libro (o cambia su voto: es 1 por libro).
-  function votar(claveLibro, puntaje) {
+  function votar(claveLibro, puntaje, titulo = null) {
     // El store de auth se pide ADENTRO de la función, igual que en bibliotecaService.
     const auth = useAuthStore();
     if (!auth.usuario) throw new Error("Iniciá sesión para calificar un libro.");
@@ -62,7 +64,8 @@ export const useVotosStore = defineStore("votos", () => {
       ...votos.value,
       [claveLibro]: { ...votos.value[claveLibro], [auth.usuario.usuario]: puntaje }
     });
-    guardarEnServidor("/votos", { method: "PUT", body: { claveLibro, puntaje } });
+    if (titulo) titulos.value = { ...titulos.value, [claveLibro]: titulo };
+    guardarEnServidor("/votos", { method: "PUT", body: { claveLibro, puntaje, titulo } });
     return puntaje;
   }
 
@@ -95,8 +98,9 @@ export const useVotosStore = defineStore("votos", () => {
   // Con sesión, los votos de todos los usuarios se leen de la base.
   async function cargarDesdeServidor() {
     votos.value = await api("/votos");
+    titulos.value = await api("/votos/titulos").catch(() => titulos.value);
   }
   alHidratar(cargarDesdeServidor);
 
-  return { votos, cargarDesdeServidor, votar, miVoto, resumenDe, puntajeVigente, reiniciar };
+  return { votos, titulos, cargarDesdeServidor, votar, miVoto, resumenDe, puntajeVigente, reiniciar };
 });

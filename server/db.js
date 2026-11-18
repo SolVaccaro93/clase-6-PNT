@@ -41,6 +41,9 @@ export async function asegurarUsuarios() {
     { usuario: "admin", clave: "admin", nombre: "Matías Gratz", rol: "admin" },
     { usuario: "duenolibreria", clave: "dueno", nombre: "Dueño de la librería", rol: "dueno" }
   ];
+  // Votos: título del libro, para mostrarlo en las métricas (bases creadas antes de existir).
+  await pool.request().query(
+    "IF COL_LENGTH('dbo.Votos', 'titulo') IS NULL ALTER TABLE dbo.Votos ADD titulo NVARCHAR(300) NULL");
   // Tabla de búsquedas para las métricas del dueño (bases creadas antes de existir).
   await pool.request().query(SQL_EVENTOS);
   // Bases creadas antes del rol "dueno": se reemplaza el CHECK de Usuarios.rol por uno que lo admita.

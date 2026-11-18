@@ -134,7 +134,7 @@ function confirmarVoto(valor) {
   }
 
   try {
-    votosStore.votar(props.libro.clave, valor);
+    votosStore.votar(props.libro.clave, valor, props.libro.titulo);
   } catch (error) {
     mensajeError.value = error.message;
     return;

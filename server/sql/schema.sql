@@ -46,6 +46,7 @@ CREATE TABLE dbo.Votos (
   id_usuario  INT NOT NULL REFERENCES dbo.Usuarios(id),
   clave_libro NVARCHAR(100) NOT NULL,
   puntaje     DECIMAL(2,1) NOT NULL CHECK (puntaje BETWEEN 0.5 AND 5),
+  titulo      NVARCHAR(300) NULL,
   PRIMARY KEY (id_usuario, clave_libro)
 );
 

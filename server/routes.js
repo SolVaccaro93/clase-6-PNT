@@ -100,8 +100,16 @@ router.get("/votos", requireAuth, wrap(async (_req, res) => {
   res.json(votos);
 }));
 
+// Títulos de los libros votados: { [claveLibro]: titulo }
+router.get("/votos/titulos", requireAuth, wrap(async (_req, res) => {
+  const pool = await getPool();
+  const { recordset } = await pool.request()
+    .query("SELECT clave_libro, MAX(titulo) AS titulo FROM dbo.Votos WHERE titulo IS NOT NULL GROUP BY clave_libro");
+  res.json(Object.fromEntries(recordset.map((r) => [r.clave_libro, r.titulo])));
+}));
+
 router.put("/votos", requireAuth, wrap(async (req, res) => {
-  const { claveLibro, puntaje } = req.body || {};
+  const { claveLibro, puntaje, titulo = null } = req.body || {};
   const n = Number(puntaje);
   if (!claveLibro || !(n >= 0.5 && n <= 5) || (n * 2) % 1 !== 0) {
     return res.status(400).json({ error: "Voto inválido." });
@@ -111,10 +119,11 @@ router.put("/votos", requireAuth, wrap(async (req, res) => {
     .input("id", sql.Int, req.usuario.id)
     .input("clave", sql.NVarChar, claveLibro)
     .input("p", sql.Decimal(2, 1), n)
+    .input("titulo", sql.NVarChar, titulo ? String(titulo).slice(0, 300) : null)
     .query(`MERGE dbo.Votos AS t USING (SELECT @id AS id, @clave AS clave) s
               ON t.id_usuario = s.id AND t.clave_libro = s.clave
-            WHEN MATCHED THEN UPDATE SET puntaje = @p
-            WHEN NOT MATCHED THEN INSERT (id_usuario, clave_libro, puntaje) VALUES (@id, @clave, @p);`);
+            WHEN MATCHED THEN UPDATE SET puntaje = @p, titulo = COALESCE(@titulo, t.titulo)
+            WHEN NOT MATCHED THEN INSERT (id_usuario, clave_libro, puntaje, titulo) VALUES (@id, @clave, @p, @titulo);`);
   res.json({ ok: true });
 }));
 
