@@ -4,6 +4,8 @@
 // Por ahora solo se registran búsquedas: las que no encuentran nada muestran
 // qué libros pide la gente y la librería no tiene. Se guardan en localStorage
 // (solo este navegador), con un máximo para no llenar el espacio.
+import { api, guardarEnServidor } from "./apiClient.js";
+
 const CLAVE_EVENTOS = "biblioteca_eventos";
 const MAX_EVENTOS = 300;
 const LARGO_MINIMO = 3;
@@ -18,12 +20,27 @@ export function leerEventos() {
 }
 
 /**
+ * Búsquedas de todos los usuarios, desde la base (solo admin o dueño).
+ * Si el servidor no responde, se usan las de este navegador.
+ */
+export async function leerEventosDelServidor() {
+  try {
+    return await api("/eventos");
+  } catch {
+    return leerEventos();
+  }
+}
+
+/**
  * Guarda una búsqueda. Las de menos de 3 letras no se guardan (todavía se está escribiendo).
  * @param {{ texto: string, resultados: number, usuario?: string | null, fecha?: Date }} busqueda
  */
 export function registrarBusqueda({ texto, resultados, usuario = null, fecha = new Date() }) {
   const limpio = texto.trim().toLowerCase();
   if (limpio.length < LARGO_MINIMO) return;
+
+  // Con sesión, la búsqueda también se guarda en la base para que el dueño vea la de todos
+  guardarEnServidor("/eventos", { method: "POST", body: { texto: limpio, resultados } });
 
   const evento = { tipo: "busqueda", texto: limpio, resultados, usuario, fecha: fecha.toISOString() };
   try {

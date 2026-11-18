@@ -23,3 +23,20 @@ export function requireAdmin(req, res, next) {
   if (!["admin", "dueno"].includes(req.usuario?.rol)) return res.status(403).json({ error: "Solo administradores." });
   next();
 }
+
+// Igual que requireAuth pero sin rechazar: si hay una sesión válida deja req.usuario, si no sigue.
+export async function authOpcional(req, _res, next) {
+  try {
+    const token = (req.headers.authorization || "").replace(/^Bearer\s+/i, "");
+    if (token) {
+      const pool = await getPool();
+      const { recordset } = await pool.request()
+        .input("token", sql.Char, token)
+        .query(`SELECT u.id, u.usuario, u.nombre, u.rol
+                FROM dbo.Sesiones s JOIN dbo.Usuarios u ON u.id = s.id_usuario
+                WHERE s.token = @token AND s.expira > SYSUTCDATETIME()`);
+      if (recordset.length) req.usuario = recordset[0];
+    }
+    next();
+  } catch (e) { next(e); }
+}

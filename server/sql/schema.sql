@@ -70,4 +70,13 @@ CREATE TABLE dbo.Stock (
   cantidad    INT NOT NULL,
   PRIMARY KEY (clave_libro, id_sucursal)
 );
+IF OBJECT_ID('dbo.Eventos') IS NULL
+CREATE TABLE dbo.Eventos (
+  id         INT IDENTITY PRIMARY KEY,
+  tipo       NVARCHAR(30)  NOT NULL,
+  texto      NVARCHAR(200) NOT NULL,
+  resultados INT NOT NULL,
+  id_usuario INT NULL REFERENCES dbo.Usuarios(id),
+  fecha      DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
+);
 GO

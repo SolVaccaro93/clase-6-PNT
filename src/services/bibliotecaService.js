@@ -27,6 +27,18 @@ function guardar(prestamos, stock) {
   datos = siguientes;
 }
 
+// Préstamos de todos los usuarios, solo para las métricas del dueño. Hasta que se cargan
+// (o si el servidor no responde) se usan los del usuario actual.
+let todosLosPrestamos = null;
+export async function cargarTodosLosPrestamos() {
+  try {
+    todosLosPrestamos = await api("/admin/prestamos");
+  } catch {
+    todosLosPrestamos = null;
+  }
+  cambiosPrestamos.value++;
+}
+
 // Con sesión, los préstamos del usuario, el stock y sus gustos se leen de SQL Server.
 alHidratar(async () => {
   const remoto = await api("/datos");
@@ -433,7 +445,7 @@ obtenerPrestamos(idUsuario = useAuthStore().usuario?.usuario) {
   // Préstamos de todos los usuarios (para las métricas del dueño). Son copias.
   obtenerTodosLosPrestamos() {
     cambiosPrestamos.value;
-    return datos.prestamos.map((p) => ({ ...p }));
+    return (todosLosPrestamos ?? datos.prestamos).map((p) => ({ ...p }));
   },
 
   obtenerPrestamosActivos() {

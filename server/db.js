@@ -23,6 +23,16 @@ export function getPool() {
 
 export { sql };
 
+const SQL_EVENTOS = `IF OBJECT_ID('dbo.Eventos') IS NULL
+  CREATE TABLE dbo.Eventos (
+    id INT IDENTITY PRIMARY KEY,
+    tipo NVARCHAR(30) NOT NULL,
+    texto NVARCHAR(200) NOT NULL,
+    resultados INT NOT NULL,
+    id_usuario INT NULL REFERENCES dbo.Usuarios(id),
+    fecha DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
+  )`;
+
 // Inserta los usuarios de prueba si no existen (clave hasheada con bcrypt).
 export async function asegurarUsuarios() {
   const pool = await getPool();
@@ -31,6 +41,8 @@ export async function asegurarUsuarios() {
     { usuario: "admin", clave: "admin", nombre: "Matías Gratz", rol: "admin" },
     { usuario: "duenolibreria", clave: "dueno", nombre: "Dueño de la librería", rol: "dueno" }
   ];
+  // Tabla de búsquedas para las métricas del dueño (bases creadas antes de existir).
+  await pool.request().query(SQL_EVENTOS);
   // Bases creadas antes del rol "dueno": se reemplaza el CHECK de Usuarios.rol por uno que lo admita.
   await pool.request().query(`
     DECLARE @ck NVARCHAR(200) = (SELECT TOP 1 name FROM sys.check_constraints

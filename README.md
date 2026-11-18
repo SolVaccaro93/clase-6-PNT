@@ -112,6 +112,7 @@ El detalle de cada funcionalidad está en la carpeta `docs/`:
 | Perfil del dueño y métricas | `docs/DOCUMENTACION_METRICAS_DUENO.md` |
 | Grilla de libros en rombos | `docs/DOCUMENTACION_GRILLA_LIBROS.md` |
 | Autenticación con Pinia | `docs/DOCUMENTACION_AUTH_PINIA.md` |
+| Arquitectura, tecnologías y APIs de punta a punta | `docs/DOCUMENTACION_ARQUITECTURA_Y_API.md` |
 | Quiz de gustos y recomendaciones | `docs/DOCUMENTACION_QUIZ_RECOMENDACIONES.md` |
 | Animación de la grilla y catálogo según gustos | `docs/DOCUMENTACION_GRILLA_Y_GUSTOS.md` |
 | Persistencia con SQL Server (diseño, tablas, endpoints) | `docs/DOCUMENTACION_PERSISTENCIA_SQL_SERVER.md` |

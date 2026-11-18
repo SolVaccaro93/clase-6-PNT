@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { getPool, sql } from "./db.js";
-import { requireAuth, requireAdmin } from "./middleware.js";
+import { requireAuth, requireAdmin, authOpcional } from "./middleware.js";
 
 const router = Router();
 const wrap = (fn) => (req, res, next) => fn(req, res).catch(next);
@@ -194,6 +194,41 @@ router.put("/stock", requireAuth, requireAdmin, wrap(async (req, res) => {
   await tx.begin();
   try { await upsertStock(tx, req.body); await tx.commit(); res.json({ ok: true }); }
   catch (e) { await tx.rollback(); throw e; }
+}));
+
+// ---------- MÉTRICAS DEL DUEÑO (lectura de la actividad de todos los usuarios) ----------
+router.get("/admin/prestamos", requireAuth, requireAdmin, wrap(async (_req, res) => {
+  const pool = await getPool();
+  const { recordset } = await pool.request()
+    .query(`SELECT p.id_prestamo, u.usuario AS id_usuario, p.clave_libro, p.titulo, p.autor,
+                   p.id_sucursal, p.sucursal, p.fecha_retiro, p.fecha_devolucion, p.estado_lectura
+            FROM dbo.Prestamos p JOIN dbo.Usuarios u ON u.id = p.id_usuario`);
+  res.json(recordset.map((p) => ({ ...p, id_sucursal: Number(p.id_sucursal) })));
+}));
+
+// Registra una búsqueda (también sin sesión; si hay, se guarda quién la hizo).
+router.post("/eventos", authOpcional, wrap(async (req, res) => {
+  const { texto, resultados } = req.body || {};
+  const limpio = String(texto || "").trim().toLowerCase().slice(0, 200);
+  if (limpio.length < 3 || !Number.isInteger(resultados) || resultados < 0) {
+    return res.status(400).json({ error: "Evento inválido." });
+  }
+  const pool = await getPool();
+  await pool.request()
+    .input("texto", sql.NVarChar, limpio)
+    .input("res", sql.Int, resultados)
+    .input("idu", sql.Int, req.usuario?.id ?? null)
+    .query("INSERT INTO dbo.Eventos (tipo, texto, resultados, id_usuario) VALUES ('busqueda', @texto, @res, @idu)");
+  res.json({ ok: true });
+}));
+
+router.get("/eventos", requireAuth, requireAdmin, wrap(async (_req, res) => {
+  const pool = await getPool();
+  const { recordset } = await pool.request()
+    .query(`SELECT TOP 1000 e.tipo, e.texto, e.resultados, u.usuario, e.fecha
+            FROM dbo.Eventos e LEFT JOIN dbo.Usuarios u ON u.id = e.id_usuario
+            ORDER BY e.fecha DESC`);
+  res.json(recordset.map((e) => ({ ...e, fecha: new Date(e.fecha).toISOString() })));
 }));
 
 export default router;

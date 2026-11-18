@@ -24,6 +24,7 @@ Vue (stores y servicios) --fetch /api--> Express (server/) --mssql--> SQL Server
 | `Votos` | estrellas: un voto por usuario y libro |
 | `Prestamos` | retiros y devoluciones |
 | `Stock` | cantidad por libro y sucursal (solo las celdas que cambiaron) |
+| `Eventos` | búsquedas de los usuarios (texto, resultados y quién), para las métricas del dueño |
 
 Los libros no se guardan: vienen de OpenLibrary. Las tablas los identifican con `clave_libro` (por ejemplo `/works/OL123W`), que es estable.
 
@@ -40,6 +41,9 @@ Los libros no se guardan: vienen de OpenLibrary. Las tablas los identifican con 
 | `GET /api/datos` | con sesión | préstamos del usuario y stock |
 | `PUT /api/prestamos` | con sesión | guardar un retiro o devolución y su stock (en una transacción) |
 | `PUT /api/stock` | admin o dueño | ajuste manual de stock |
+| `GET /api/admin/prestamos` | admin o dueño | préstamos de **todos** los usuarios (métricas) |
+| `POST /api/eventos` | todos (con o sin sesión) | registra una búsqueda |
+| `GET /api/eventos` | admin o dueño | búsquedas de todos los usuarios (métricas) |
 
 `requireAuth` (`server/middleware.js`) busca el token en `Sesiones` y responde **401** si falta o venció. `requireAdmin` responde **403** si el rol no es `admin` ni `dueno`.
 
@@ -112,3 +116,11 @@ Los tests existentes simulan la sesión (`iniciar(auth, "lector")`) en vez de ha
 * Si falla un guardado en el servidor, la pantalla ya cambió: solo se avisa por consola y queda la copia en `localStorage`.
 * No hay registro de usuarios nuevos: solo `lector`, `admin` y `duenolibreria`.
 * `AmigosService` y los eventos de métricas siguen con datos simulados o en `localStorage`.
+
+## 📊 Métricas del dueño
+Las métricas muestran la actividad de **todos** los usuarios, no solo la del navegador del dueño:
+* **Préstamos:** `GET /api/admin/prestamos` (el `GET /api/datos` devuelve solo los del usuario actual).
+* **Búsquedas:** se guardan en la tabla `Eventos` desde el navegador de quien busca (con sesión) y el dueño las lee con `GET /api/eventos`.
+* **Votos y stock:** se vuelven a leer de la base cada vez que se abre la pantalla de métricas.
+
+Para ver el efecto: entrar como `lector`, buscar un libro, votar y retirar uno. Después entrar como `duenolibreria` y abrir **Métricas**. Las búsquedas anteriores a este cambio no están en la base, así que no aparecen.

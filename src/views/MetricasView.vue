@@ -3,8 +3,9 @@
 // Requerimiento: Perfil del dueño - métricas de préstamos e interacciones - Sol
 // =========================================================================
 import { ref, computed, onMounted } from "vue";
-import { BibliotecaService, SUCURSALES, cambiosStock } from "../services/bibliotecaService.js";
-import { leerEventos } from "../services/eventosService.js";
+import { BibliotecaService, SUCURSALES, cambiosStock, cargarTodosLosPrestamos } from "../services/bibliotecaService.js";
+import { hidratarDatos } from "../services/apiClient.js";
+import { leerEventosDelServidor } from "../services/eventosService.js";
 import { PERIODOS, calcularMetricas, generarDatosDemo } from "../services/metricasService.js";
 import { formatearPuntaje } from "../services/votosCalculo.js";
 import { useVotosStore } from "../stores/votosStore.js";
@@ -21,8 +22,11 @@ const modoDemo = ref(false);
 async function cargar() {
   isLoading.value = true;
   errorCatalogo.value = "";
-  eventos.value = leerEventos();
   try {
+    // Datos frescos de la base: lo que hicieron los demás usuarios desde la última vez
+    await hidratarDatos();
+    const [, eventosServidor] = await Promise.all([cargarTodosLosPrestamos(), leerEventosDelServidor()]);
+    eventos.value = eventosServidor;
     libros.value = await BibliotecaService.cargarLibros();
   } catch (e) {
     // Sin catálogo igual se ven los préstamos y búsquedas; faltan títulos de votos y el stock
